@@ -20,10 +20,10 @@ import numpy as np
 #     return y
 
 def f(x):
-    return x[0]/5 * np.sin(x[0]) + x[0]/10 * np.cos(2 * x[0])
+    return x[0]/5 * np.sin(x[0]) + x[0]/7 * np.cos(2 * x[0])
 
 # bounds for the search
 bounds = dict({
-    'lower': -5,
+    'lower': 0,
     'upper': 15
 })

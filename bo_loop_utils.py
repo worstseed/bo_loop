@@ -65,7 +65,7 @@ def plot_search_graph(observed_x, observed_y, model):
 
 # Plot acquisition function
 def plot_acquisition_function(acquisition, eta, model, add=None):
-    new_x = np.linspace(bounds['lower'], bounds['upper'], 100)
+    new_x = np.linspace(bounds['lower'], bounds['upper'], 1000)
     acquisition_fun = acquisition_functions[acquisition](new_x, model=model, eta=eta, add=add, plotting=True)
     zipped = list(zip(new_x, acquisition_fun))
     zipped.sort(key = lambda t: t[0])

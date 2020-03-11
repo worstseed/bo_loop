@@ -19,7 +19,7 @@ from bo_loop_utils import plot_search_graph, plot_acquisition_function, acquisit
 from bo_loop_obj_fun import f, bounds
 
 
-def run_bo(acquisition, max_iter, init=2, seed=1, random=True, acq_add=1):
+def run_bo(acquisition, max_iter, init, seed, initial_design, acq_add):
     """
     BO
     :param acquisition: type of acquisition function to be used
@@ -32,10 +32,13 @@ def run_bo(acquisition, max_iter, init=2, seed=1, random=True, acq_add=1):
     """
     # sample initial query points
     np.random.seed(seed)
-    if random:
-        x = np.random.uniform(bounds['lower'], bounds['upper'], init).reshape(-1, 1).tolist()
-    else:
+    if initial_design == 'uniform':
         x = np.linspace(bounds['lower'], bounds['upper'], init).reshape(-1, 1).tolist()
+    elif initial_design == 'random':
+        x = np.random.uniform(bounds['lower'], bounds['upper'], init).reshape(-1, 1).tolist()
+    elif initial_design == 'presentation':
+        x = np.array([3, 4, 4.6, 4.8, 5, 9.4, 10, 12.7]).reshape(-1, 1).tolist()
+
     # get corresponding response values
     y = list(map(f, x))
 
@@ -68,16 +71,17 @@ def run_bo(acquisition, max_iter, init=2, seed=1, random=True, acq_add=1):
         print("After {0}. loop iteration".format(i))
         print("x: {0:.3E}, y: {1:.3E}".format(x_[0], y_))
         # plot_search_graph(x, list(map(lambda x:-1*x, y)), gp)
-        plot_search_graph(x, y, gp)
-        plot_acquisition_function(acquisition, min(y), gp, acq_add)
+        if i:
+            plot_search_graph(x, y, gp)
+            plot_acquisition_function(acquisition, min(y), gp, acq_add)
 
     return y
 
 
 
-def main(num_evals, init_size, repetitions, random, seed, acq_add=1, acquisition=LCB):
+def main(num_evals, init_size, repetitions, initial_design, seed, acq_add, acquisition):
     for i in range(repetitions):
-        bo_res_1 = run_bo(max_iter=num_evals, init=init_size, random=random, acquisition=acquisition, acq_add=acq_add, seed=seed+1)
+        bo_res_1 = run_bo(max_iter=num_evals, init=init_size, initial_design=initial_design, acquisition=acquisition, acq_add=acq_add, seed=seed+1)
 
 if __name__ == '__main__':
     cmdline_parser = argparse.ArgumentParser('AutoMLLecture')
@@ -90,24 +94,24 @@ if __name__ == '__main__':
                                 default=0.4,
                                 help='Percentage of budget (num_func_evals) to spend on building initial model',
                                 type=float)
-    cmdline_parser.add_argument('-r', '--random_initial_design',
-                                action="store_true",
-                                help='Use random initial points. If not set, initial points are sampled linearly on'
-                                     ' the function bounds.')
+    cmdline_parser.add_argument('-i', '--initial_design',
+                                default="random",
+                                choices=['random', 'uniform', 'presentation'],
+                                help='How to choose first observations.')
     cmdline_parser.add_argument('-v', '--verbose',
                                 default='INFO',
                                 choices=['INFO', 'DEBUG'],
                                 help='verbosity')
-    cmdline_parser.add_argument('--acquisition',
+    cmdline_parser.add_argument('-a', '--acquisition',
                                 default='LCB',
                                 choices=['LCB', 'EI', 'PI'],
                                 help='acquisition function')
-    cmdline_parser.add_argument('--seed',
+    cmdline_parser.add_argument('-s', '--seed',
                                 default=14,
                                 help='Which seed to use',
                                 required=False,
                                 type=int)
-    cmdline_parser.add_argument('--repetitions',
+    cmdline_parser.add_argument('-r', '--repetitions',
                                 default=1,
                                 help='Number of repeations for the experiment',
                                 required=False,
@@ -125,7 +129,8 @@ if __name__ == '__main__':
     main(   num_evals=args.num_func_evals,
             init_size=init_size,
             repetitions=args.repetitions,
-            random=args.random_initial_design,
+            initial_design=args.initial_design,
             acquisition=acquisition_functions[args.acquisition],
-            seed=args.seed
+            seed=args.seed,
+            acq_add=1
             )
