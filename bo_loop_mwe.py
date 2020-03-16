@@ -15,7 +15,7 @@ from sklearn.metrics import mean_squared_error
 from matplotlib import pyplot as plt
 
 from bo_loop_acq_functions import EI, LCB, PI
-from bo_loop_utils import plot_search_graph, plot_acquisition_function, acquisition_functions
+from bo_plot_utils import plot_search_graph, plot_acquisition_function, acquisition_functions
 from bo_loop_obj_fun import f, bounds
 
 
@@ -72,8 +72,11 @@ def run_bo(acquisition, max_iter, init, seed, initial_design, acq_add):
         print("x: {0:.3E}, y: {1:.3E}".format(x_[0], y_))
         # plot_search_graph(x, list(map(lambda x:-1*x, y)), gp)
         if i:
-            plot_search_graph(x, y, gp)
-            plot_acquisition_function(acquisition, min(y), gp, acq_add)
+            ax = plot_search_graph(x, y, gp)
+            _ = plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax)
+            ax.legend()
+            ax.grid()
+            plt.show(plt.gcf())
 
     return y
 
@@ -90,9 +93,9 @@ if __name__ == '__main__':
                                 default=10,
                                 help='Number of function evaluations',
                                 type=int)
-    cmdline_parser.add_argument('-p', '--percentage_init',
+    cmdline_parser.add_argument('-f', '--fraction_init',
                                 default=0.4,
-                                help='Percentage of budget (num_func_evals) to spend on building initial model',
+                                help='Fraction of budget (num_func_evals) to spend on building initial model',
                                 type=float)
     cmdline_parser.add_argument('-i', '--initial_design',
                                 default="random",
@@ -125,7 +128,7 @@ if __name__ == '__main__':
         logging.warning(str(unknowns))
         logging.warning('These will be ignored')
 
-    init_size = max(1, int(args.num_func_evals * args.percentage_init))
+    init_size = max(1, int(args.num_func_evals * args.fraction_init))
     main(   num_evals=args.num_func_evals,
             init_size=init_size,
             repetitions=args.repetitions,
