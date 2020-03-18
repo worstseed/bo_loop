@@ -7,7 +7,7 @@ from bo_configurations import *
 from matplotlib import rcParams
 # from datetime import datetime
 
-rcParams["font.size"] = "15"
+rcParams["font.size"] = "16"
 rcParams["axes.linewidth"] = 3
 rcParams["lines.markersize"] = 15
 rcParams["legend.loc"] = "lower right"
@@ -214,6 +214,9 @@ def indicate_next_sample(x, ax=None):
         fig, ax = plt.subplots(1, 1, squeeze=True)
         return_flag = True
 
-
-
+    ax.vlines(x, ymin=ybounds[0], ymax=ybounds[1], colors=colors['next_sample'], linestyles='dashed', label='Next Sample')
+    ax.set_xticks(x, minor=True)
+    xlabel = "{0:.2f}".format(x[0])
+    ax.set_xticklabels([xlabel], {'color': colors['next_sample']}, minor=True)
+    #logging.info("Xticks: {}".format(ax.xaxis.get_minor_ticks()))
     return ax if return_flag else None

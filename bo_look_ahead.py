@@ -73,6 +73,7 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
         fig, ax = plt.subplots(1, 1, squeeze=True)
         ax.set_xlim(xbounds)
         ax.set_ylim(ybounds)
+        ax.grid()
         boplot.plot_objective_function(ax=ax)
         boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0], ax=ax, custom_x=x)
         boplot.mark_observations(X_=x, Y_=y, ax=ax)
@@ -99,6 +100,7 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
                 x_ = opt_res.x
                 y_ = opt_res.fun[0]
 
+        boplot.indicate_next_sample(x_, ax=ax)
         x.append(x_)
         y.append(f(x_))
 
@@ -109,7 +111,6 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
 
         # ----------Plotting calls---------------
         ax.legend()
-        ax.grid()
         plt.show(plt.gcf())
         # ---------------------------------------
 

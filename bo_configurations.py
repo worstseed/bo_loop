@@ -13,6 +13,7 @@ colors = dict({
     'acq_fun': 'black',
     'envelope_min_opacity': 0.3,
     'envelope_max_opacity': 0.8,
+    'next_sample': 'red'
 })
 
 # Various parameters for plotting required by our own code
@@ -25,7 +26,7 @@ labels = dict({
     LCB: 'Lower Confidence Bound',
     EI: 'Expected Improvement',
     'xlabel': '$\lambda$',
-    'ylabel': 'c($\lambda$)'
+    'ylabel': 'c($\lambda$)',
 })
 
 ylabels = dict({
