@@ -53,15 +53,17 @@ def mark_current_incumbent(x, y, invert_y=False, ax=None):
 
     if invert_y:
         y = -y
-    ax.scatter(x, y, color=colors['current_incumbent'], marker='v', label="Current incumbent", zorder=10)
+    ax.scatter(x, y, color=colors['current_incumbent'], marker='v', label=labels['incumbent'], zorder=10)
 
 
-def mark_observations(X_, Y_, mark_incumbent=True, ax=None):
+def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=None):
     """
     Plots the given dataset as data observed thus far, including the current incumbent unless otherwise specified.
     :param X_: Configurations.
     :param Y_: Observed Costs.
     :param mark_incumbent: When True (default), distinctly marks the location of the current incumbent.
+    :param highlight_datapoint: Optional array of indices of configurations in X_ which will be highlighted.
+    :param highlight_label: Optional legend label for highlighted datapoints.
     :param ax: matplotlib.Axes.axes object given by the user, or newly generated for a 1x1 figure if None (default).
     :return: None if ax was given, otherwise the new matplotlib.Axes.axes object.
     """
@@ -78,6 +80,18 @@ def mark_observations(X_, Y_, mark_incumbent=True, ax=None):
         incumb_idx = np.argmin(Y_)
         mark_current_incumbent(X_[incumb_idx, 0], Y_[incumb_idx, 0], ax=ax)
         mask[incumb_idx] = 0
+
+    if highlight_datapoint is not None:
+        logging.debug("Placing highlights on labels at indices: {}".format(highlight_datapoint))
+        ax.scatter(
+            X_[highlight_datapoint, 0],
+            Y_[highlight_datapoint, 0],
+            color=colors['highlighted_observations'],
+            marker='X',
+            label=highlight_label,
+            zorder=11
+        )
+        mask[highlight_datapoint] = 0
     ax.scatter(X_[mask, 0], Y_[mask, 0], color=colors['observations'], marker='X', label="Observations", zorder=10)
 
     return ax if return_flag else None
@@ -113,7 +127,7 @@ def plot_gp(model, confidence_intervals=None, custom_x=None, ax=None):
     ))
 
     # Plot the mean
-    ax.plot(X_, mu, lw=2, color=colors['gp_mean'], label="GP Mean")
+    ax.plot(X_, mu, lw=2, color=colors['gp_mean'], label=labels['gp_mean'])
 
     # If needed, plot the confidence envelope(s)
     if confidence_intervals is not None:
@@ -160,9 +174,9 @@ def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, a
     acquisition_fun = acquisition_functions[acquisition](X_, model=model, eta=eta, add=add)
     if invert:
         acquisition_fun = -acquisition_fun
-    #zipped = list(zip(X_, acquisition_fun))
-    #zipped.sort(key = lambda t: t[0])
-    #X_, acquisition_fun = list(zip(*zipped))
+    zipped = list(zip(X_, acquisition_fun))
+    zipped.sort(key = lambda t: t[0])
+    X_, acquisition_fun = list(zip(*zipped))
 
     ax.plot(X_, acquisition_fun, color=colors['acq_fun'], label=labels[acquisition])
     ax.fill_between(X_, acquisition_fun, ybounds[0], facecolor=colors['acq_func_fill'])
@@ -175,7 +189,7 @@ def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, a
     # plt.clf()
 
 
-def indicate_next_sample(x, ybounds=ybounds, ax=None):
+def indicate_next_sample(x, ybounds=ybounds, label=None, ax=None):
     """
     Draw a vertical line at the given configuration to indicate the next configuration to be sampled.
     :param x: Configuration.
@@ -191,7 +205,7 @@ def indicate_next_sample(x, ybounds=ybounds, ax=None):
 
     ax.vlines(x, ymin=ybounds[0], ymax=ybounds[1], colors=colors['next_sample'], linestyles='dashed', label='Next Sample')
     ax.set_xticks(x, minor=True)
-    xlabel = "{0:.2f}".format(x[0])
+    xlabel = "{0:.2f}".format(x[0]) if label is None else label
     ax.set_xticklabels([xlabel], {'color': colors['next_sample']}, minor=True)
     #logging.info("Xticks: {}".format(ax.xaxis.get_minor_ticks()))
     return ax if return_flag else None

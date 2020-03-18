@@ -5,6 +5,7 @@ from bo_loop_acq_functions import *
 # Dictionaries for the graphs' appearance
 colors = dict({
     'observations': 'black',
+    'highlighted_observations': 'green',
     'current_incumbent': 'red',
     'highlighted_point': 'red',
     'gp_mean': '#0F028A',
@@ -28,7 +29,9 @@ labels = dict({
     EI: 'Expected Improvement',
     'xlabel': '$\lambda$',
     'gp_ylabel': 'c($\lambda$)',
-    'acq_ylabel': '$u(\lambda)$'
+    'acq_ylabel': '$u(\lambda)$',
+    'gp_mean': 'GP Mean',
+    'incumbent': 'Current Incumbent'
 })
 
 ylabels = dict({

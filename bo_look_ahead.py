@@ -8,13 +8,9 @@ import numpy as np
 from scipy.optimize import minimize
 from sklearn.gaussian_process import GaussianProcessRegressor as GPR
 from sklearn.gaussian_process.kernels import Matern
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.metrics import mean_squared_error
 
 from matplotlib import pyplot as plt
 
-from bo_loop_acq_functions import EI, LCB, PI
 import bo_plot_utils as boplot
 from bo_configurations import *
 
@@ -22,6 +18,9 @@ from bo_configurations import *
 SEED = None
 INIT_X_PRESENTATION = [3, 4, 4.6, 4.8, 5, 9.4, 10, 12.7]
 NUM_ACQ_OPTS = 10 # Number of times the acquisition function is optimized while looking for the next x to sample.
+
+labels["xlabel"] = "$\lambda'$"
+labels["ylabel"] = "$c(\lambda')$"
 
 def initialize_dataset(initial_design, init=None):
     """
@@ -45,96 +44,122 @@ def initialize_dataset(initial_design, init=None):
     return x, y
 
 
-def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
+def visualize_look_ahead(initial_design, init=None):
     """
-    BO
-    :param acquisition: type of acquisition function to be used
-    :param max_iter: max number of function calls
-    :param seed: seed used to keep experiments reproducible
+    Visualize one-step of look-ahead.
     :param initial_design: Method for initializing the GP, choice between 'uniform', 'random', and 'presentation'
-    :param acq_add: additional parameteres for acquisition function (e.g. kappa for LCB)
     :param init: Number of datapoints to initialize GP with.
-    :return: all evaluated points.
+    :return: None
     """
 
-    logging.debug("Running BO with Acquisition Function {0}, maximum iterations {1}, initial design {2}, "
-                  "acq_add {3} and init {4}".format(acquisition, max_iter, initial_design, acq_add, init))
+    logging.debug("Visualizing Look-Ahead with initial design {} and init {}".format(initial_design, init))
+    # Initialize dummy dataset
     x, y = initialize_dataset(initial_design=initial_design, init=init)
     logging.debug("Initialized dataset with:\nsamples {0}\nObservations {1}".format(x, y))
 
-    for i in range(1, max_iter):  # BO loop
-        logging.debug('Sample #%d' % (i))
-
-        gp = GPR(kernel=Matern())
-        logging.debug("Fitting GP to\nx: {}\ny:{}".format(x, y))
-        gp.fit(x, y)  # fit the model
-
-        # ----------Plotting calls---------------
-        fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
-        ax1.set_xlim(xbounds)
-        ax1.set_ylim(ybounds)
-        ax1.grid()
-        ax2.set_xlim(xbounds)
-        ax2.set_ylim(ybounds)
-        ax2.grid()
-        boplot.plot_objective_function(ax=ax1)
-        boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0], ax=ax1, custom_x=x)
-        boplot.mark_observations(X_=x, Y_=y, ax=ax1)
-        # ---------------------------------------
-
-        # noinspection PyStringFormat
-        logging.debug("Model fit to dataset.\nOriginal Inputs: {0}\nOriginal Observations: {1}\n"
-                      "Predicted Means: {2}\nPredicted STDs: {3}".format(x, y, *(gp.predict(x, return_std=True))))
-
-        # Partially initialize the acquisition function to work with the fmin interface
-        # (only the x parameter is not specified)
-        acqui = partial(acquisition, model=gp, eta=min(y), add=acq_add)
-        boplot.plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax2)
-
-        # optimize acquisition function, repeat 10 times, use best result
-        x_ = None
-        y_ = 10000
-        # Feel free to adjust the hyperparameters
-        for j in range(NUM_ACQ_OPTS):
-            opt_res = minimize(acqui, np.random.uniform(xbounds[0], xbounds[1]),
-                               #bounds=xbounds,
-                               options={'maxfun': 20, 'maxiter': 20}, method="L-BFGS-B")
-            if opt_res.fun[0] < y_:
-                x_ = opt_res.x
-                y_ = opt_res.fun[0]
-
-        boplot.indicate_next_sample(x_, ax=ax1)
-        boplot.indicate_next_sample(x_, ax=ax2)
-        x.append(x_)
-        y.append(f(x_))
-
-        logging.info("After {0}. loop iteration".format(i))
-        logging.info("x: {0:.3E}, y: {1:.3E}".format(x_[0], y_))
+    # Fit GP to the currently available dataset
+    gp = GPR(kernel=Matern())
+    logging.debug("Fitting GP to\nx: {}\ny:{}".format(x, y))
+    gp.fit(x, y)  # fit the model
 
 
+    # noinspection PyStringFormat
+    logging.debug("Model fit to dataset.\nOriginal Inputs: {0}\nOriginal Observations: {1}\n"
+                  "Predicted Means: {2}\nPredicted STDs: {3}".format(x, y, *(gp.predict(x, return_std=True))))
 
-        # ----------Plotting calls---------------
-        ax1.legend()
-        plt.show(plt.gcf())
-        # ---------------------------------------
+    # Assume next evaluation location
+    # x_ = np.mean(x, keepdims=True)
+    x_ = np.array([[5.8]])
+    print(x_)
+    y_ = f(x_[0])
 
-    return y
+    # Update dataset with new observation
+    X2_ = np.append(x, x_, axis=0)
+    Y2_ = y + [y_]
+
+    logging.info("x: {}, y: {}".format(x_, y_))
+
+    # Fit GP to the updated dataset
+    gp2 = GPR(kernel=Matern())
+    logging.debug("Fitting GP to\nx: {}\ny:{}".format(X2_, Y2_))
+    gp2.fit(X2_, Y2_)  # fit the model
+
+    # -------------------------Plotting madness begins---------------------------
+    # Draw Figure 1.
+
+    fig, ax = plt.subplots(1, 1, squeeze=True)
+    fig.tight_layout()
+    labels['gp_mean'] = r'Mean - $\mu^t(\cdot)$'
+    # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^t$'
+    def draw_figure_1(ax):
+        ax.set_xlim(xbounds)
+        ax.set_ylim(ybounds)
+        ax.grid()
+        boplot.plot_objective_function(ax=ax)
+        boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0], ax=ax, custom_x=x)
+        boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, ax=ax)
+
+        ax.legend()
+        ax.set_xlabel(labels['xlabel'])
+        ax.set_ylabel(labels['gp_ylabel'])
+        ax.set_title(r"Visualization of $\mathcal{G}^t$", loc='left')
+
+    draw_figure_1(ax)
+    plt.show(plt.gcf())
+
+    # End of figure 1.
+    # ---------------------------------------
+    # Draw Figure 2.
+
+    fig, ax = plt.subplots(1, 1, squeeze=True)
+    fig.tight_layout()
+    labels['gp_mean'] = r'Mean - $\mu^{t+1}(\cdot)|_\lambda$'
+    # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^{t+1}|_\lambda$'
+
+    def draw_figure_2(ax):
+        ax.set_xlim(xbounds)
+        ax.set_ylim(ybounds)
+        ax.grid()
+        boplot.plot_objective_function(ax=ax)
+        boplot.plot_gp(model=gp2, confidence_intervals=[1.0, 2.0], ax=ax, custom_x=X2_)
+        boplot.mark_observations(X_=X2_, Y_=Y2_, highlight_datapoint=np.where(np.isclose(X2_, x_))[0],
+                                 mark_incumbent=False,
+                                 highlight_label=r"Hypothetical Observation $<\lambda, c(\lambda)>$", ax=ax)
+
+        ax.legend()
+        ax.set_xlabel(labels['xlabel'])
+        ax.set_ylabel(labels['gp_ylabel'])
+        ax.set_title(r"Visualization of $\mathcal{G}^{t}|_\lambda$", loc='left')
+
+    draw_figure_2(ax)
+    plt.show(plt.gcf())
+
+    # End of figure 2.
+    # ---------------------------------------
+    # Draw Figure 3 for KG
+    fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True)
+    fig.tight_layout()
+    labels['gp_mean'] = r'Mean - $\mu^t(\cdot)$'
+    draw_figure_1(ax1)
+    ax1.get_legend().remove()
+    labels['gp_mean'] = r'Mean - $\mu^{t+1}(\cdot)|_\lambda$'
+    draw_figure_2(ax2)
+    ax2.get_legend().remove()
+    plt.show(plt.gcf())
 
 
 
-def main(num_evals, init_size, repetitions, initial_design, acq_add, acquisition):
-    for i in range(repetitions):
-        bo_res_1 = run_bo(max_iter=num_evals, init=init_size, initial_design=initial_design, acquisition=acquisition, acq_add=acq_add)
+def main(init_size, initial_design):
+        visualize_look_ahead(
+            init=init_size,
+            initial_design=initial_design,
+        )
 
 
 
 if __name__ == '__main__':
     cmdline_parser = argparse.ArgumentParser('AutoMLLecture')
 
-    cmdline_parser.add_argument('-n', '--num_func_evals',
-                                default=5,
-                                help='Number of function evaluations',
-                                type=int)
     cmdline_parser.add_argument('-f', '--init_db_size',
                                 default=4,
                                 help='Size of the initial database',
@@ -147,20 +172,12 @@ if __name__ == '__main__':
                                 default=False,
                                 help='verbosity',
                                 action='store_true')
-    cmdline_parser.add_argument('-a', '--acquisition',
-                                default='LCB',
-                                choices=['LCB', 'EI', 'PI'],
-                                help='acquisition function')
     cmdline_parser.add_argument('-s', '--seed',
                                 default=15,
                                 help='Which seed to use',
                                 required=False,
                                 type=int)
-    cmdline_parser.add_argument('-r', '--repetitions',
-                                default=1,
-                                help='Number of repeations for the experiment',
-                                required=False,
-                                type=int)
+
     args, unknowns = cmdline_parser.parse_known_args()
     log_lvl = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_lvl)
@@ -178,12 +195,7 @@ if __name__ == '__main__':
 
     #init_size = max(1, int(args.num_func_evals * args.fraction_init))
 
-    main(   num_evals=args.num_func_evals,
-            # init_size=init_size,
-            init_size=args.init_db_size,
-            repetitions=args.repetitions,
-            initial_design=args.initial_design,
-            acquisition=acquisition_functions[args.acquisition],
-            # seed=args.seed,
-            acq_add=1
-            )
+    main(
+        init_size=args.init_db_size,
+        initial_design=args.initial_design,
+    )
