@@ -56,6 +56,16 @@ acquisition_functions = dict({
     'EI': EI
 })
 
+
+def get_plot_domain():
+    """
+    Generates the default domain of configuration values to be plotted.
+    :return: A NumPy-array of shape [-1, 1]
+    """
+
+    return np.arange(bounds['lower'], bounds['upper'], 1 / params['sample_precision']).reshape(-1, 1)
+
+
 # Plot objective function, defined f(x)
 def plot_objective_function(ax=None):
     """
@@ -67,8 +77,8 @@ def plot_objective_function(ax=None):
     if ax is None:
         fig, ax = plt.subplots(1, 1, squeeze=True)
         return_flag = True
-    axis = np.arange(start=bounds['lower'], stop=bounds['upper'], step=0.1)
-    ax.plot(axis, f([axis]), linestyle='--', label="Objective function")
+    X_ = get_plot_domain()
+    ax.plot(X_, f([X_]), linestyle='--', label="Objective function")
 
     return ax if return_flag else None
 
@@ -89,21 +99,21 @@ def plot_gp(model, confidence_intervals=None, ax=None, custom_x=None):
         fig, ax = plt.subplots(1, 1, squeeze=True)
         return_flag = True
 
-    x = np.arange(bounds['lower'], bounds['upper'], 1 / params['sample_precision']).reshape(-1, 1)
-    logging.debug("Generated x values for plotting of shape {0}".format(x.shape))
+    X_ = get_plot_domain()
+    logging.debug("Generated x values for plotting of shape {0}".format(X_.shape))
     if custom_x is not None:
         custom_x = np.array(custom_x).reshape(-1, 1)
         logging.debug("Custom x has shape {0}".format(custom_x.shape))
-        x = np.unique(np.vstack((x, custom_x))).reshape(-1, 1)
+        X_ = np.unique(np.vstack((X_, custom_x))).reshape(-1, 1)
 
-    logging.debug("Plotting values for x of shape {0}".format(x.shape))
-    mu, sigma = model.predict(x, return_std=True)
+    logging.debug("Plotting values for x of shape {0}".format(X_.shape))
+    mu, sigma = model.predict(X_, return_std=True)
     logging.debug("Plotting GP with these values:\nSamples:\t\t{0}\nMeans:\t\t{1}\nSTDs:\t\t{2}".format(
-        x, mu, sigma
+        X_, mu, sigma
     ))
 
     # Plot the mean
-    ax.plot(x, mu, lw=2, color=colors['gp_mean'], label="GP mean")
+    ax.plot(X_, mu, lw=2, color=colors['gp_mean'], label="GP mean")
 
     # If needed, plot the confidence envelope(s)
     if confidence_intervals is not None:
@@ -120,7 +130,7 @@ def plot_gp(model, confidence_intervals=None, ax=None, custom_x=None):
 
         for k, alpha in zip(confidence_intervals, alphas):
             ax.fill_between(
-                x[:, 0], mu - k*sigma, mu + k*sigma,
+                X_[:, 0], mu - k*sigma, mu + k*sigma,
                 facecolor=colors['gp_variance'], alpha=alpha,
                 label="{0:.2f}-Sigma Confidence Envelope".format(k)
             )
@@ -173,7 +183,7 @@ def plot_acquisition_function(acquisition, eta, model, add=None, ax=None):
         fig, ax = plt.subplots(1, 1, squeeze=True)
         return_flag = True
 
-    new_x = np.linspace(bounds['lower'], bounds['upper'], 1000)
+    new_x = get_plot_domain()
     acquisition_fun = acquisition_functions[acquisition](new_x, model=model, eta=eta, add=add, plotting=True)
     zipped = list(zip(new_x, acquisition_fun))
     zipped.sort(key = lambda t: t[0])
