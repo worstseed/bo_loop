@@ -15,8 +15,8 @@ from sklearn.metrics import mean_squared_error
 from matplotlib import pyplot as plt
 
 from bo_loop_acq_functions import EI, LCB, PI
-from bo_plot_utils import plot_complete_graph, plot_acquisition_function, acquisition_functions
-from bo_loop_obj_fun import f, bounds
+import bo_plot_utils as boplot
+from bo_configurations import *
 
 
 SEED = None
@@ -45,18 +45,6 @@ def initialize_dataset(initial_design, init=None):
     return x, y
 
 
-def show_gp_for_dataset(x, y):
-    gp = Pipeline([["standardize", MinMaxScaler(feature_range=(0, 1))],
-                   ["GP",
-                    GPR(kernel=Matern(nu=2.5), normalize_y=True, n_restarts_optimizer=10, random_state=SEED)]])
-    gp.fit(x, y)  # fit the model
-
-    ax = plot_complete_graph(x, y, gp)
-    ax.legend()
-    ax.grid()
-    plt.show(plt.gcf())
-
-
 def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
     """
     BO
@@ -77,20 +65,25 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
     for i in range(1, max_iter):  # BO loop
         logging.debug('Sample #%d' % (i))
 
-        gp = Pipeline([
-            ["standardize", MinMaxScaler(feature_range=(0, 1))],
-            ["GP", GPR(kernel=Matern(nu=2.5), normalize_y=True, n_restarts_optimizer=10, random_state=SEED)]
-        ])
+        gp = GPR(kernel=Matern())
+        logging.debug("Fitting GP to\nx: {}\ny:{}".format(x, y))
         gp.fit(x, y)  # fit the model
+
+        # ----------Plotting calls---------------
+        fig, ax = plt.subplots(1, 1, squeeze=True)
+        boplot.plot_objective_function(ax=ax)
+        boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0], ax=ax, custom_x=x)
+        boplot.mark_observations(X_=x, Y_=y, ax=ax)
+        # ---------------------------------------
+
         # noinspection PyStringFormat
         logging.debug("Model fit to dataset.\nOriginal Inputs: {0}\nOriginal Observations: {1}\n"
                       "Predicted Means: {2}\nPredicted STDs: {3}".format(x, y, *(gp.predict(x, return_std=True))))
-        ax = plot_complete_graph(x, y, gp)
 
         # Partially initialize the acquisition function to work with the fmin interface
         # (only the x parameter is not specified)
         acqui = partial(acquisition, model=gp, eta=min(y), add=acq_add)
-        plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax)
+        # plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax)
 
         # optimize acquisition function, repeat 10 times, use best result
         x_ = None
@@ -107,13 +100,16 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
         x.append(x_)
         y.append(f(x_))
 
-        print("After {0}. loop iteration".format(i))
-        print("x: {0:.3E}, y: {1:.3E}".format(x_[0], y_))
-        # plot_search_graph(x, list(map(lambda x:-1*x, y)), gp)
+        logging.info("After {0}. loop iteration".format(i))
+        logging.info("x: {0:.3E}, y: {1:.3E}".format(x_[0], y_))
 
+
+
+        # ----------Plotting calls---------------
         ax.legend()
         ax.grid()
         plt.show(plt.gcf())
+        # ---------------------------------------
 
     return y
 
@@ -129,7 +125,7 @@ if __name__ == '__main__':
     cmdline_parser = argparse.ArgumentParser('AutoMLLecture')
 
     cmdline_parser.add_argument('-n', '--num_func_evals',
-                                default=10,
+                                default=5,
                                 help='Number of function evaluations',
                                 type=int)
     cmdline_parser.add_argument('-f', '--init_db_size',
@@ -172,11 +168,15 @@ if __name__ == '__main__':
     SEED = args.seed
     np.random.seed(SEED)
 
+
+    #init_size = max(1, int(args.num_func_evals * args.fraction_init))
+
     main(   num_evals=args.num_func_evals,
             # init_size=init_size,
             init_size=args.init_db_size,
             repetitions=args.repetitions,
             initial_design=args.initial_design,
             acquisition=acquisition_functions[args.acquisition],
+            # seed=args.seed,
             acq_add=1
             )

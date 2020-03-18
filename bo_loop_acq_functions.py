@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 
+
 def PI(x, model, eta, add, plotting=False):
     """
 	Probability of Improvement
