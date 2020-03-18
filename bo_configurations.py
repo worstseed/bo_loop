@@ -13,7 +13,8 @@ colors = dict({
     'acq_fun': 'black',
     'envelope_min_opacity': 0.3,
     'envelope_max_opacity': 0.8,
-    'next_sample': 'red'
+    'next_sample': 'red',
+    'acq_func_fill': 'lightblue',
 })
 
 # Various parameters for plotting required by our own code
@@ -50,5 +51,5 @@ def f(x):
     return x[0]/5 * np.sin(x[0]) + x[0]/7 * np.cos(2 * x[0])
 
 # bounds for the search
-xbounds = [2, 9]
-ybounds = [-3, 3]
+xbounds = (2, 9)
+ybounds = (-3, 3)

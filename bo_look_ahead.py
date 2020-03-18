@@ -70,13 +70,16 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
         gp.fit(x, y)  # fit the model
 
         # ----------Plotting calls---------------
-        fig, ax = plt.subplots(1, 1, squeeze=True)
-        ax.set_xlim(xbounds)
-        ax.set_ylim(ybounds)
-        ax.grid()
-        boplot.plot_objective_function(ax=ax)
-        boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0], ax=ax, custom_x=x)
-        boplot.mark_observations(X_=x, Y_=y, ax=ax)
+        fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
+        ax1.set_xlim(xbounds)
+        ax1.set_ylim(ybounds)
+        ax1.grid()
+        ax2.set_xlim(xbounds)
+        ax2.set_ylim(ybounds)
+        ax2.grid()
+        boplot.plot_objective_function(ax=ax1)
+        boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0], ax=ax1, custom_x=x)
+        boplot.mark_observations(X_=x, Y_=y, ax=ax1)
         # ---------------------------------------
 
         # noinspection PyStringFormat
@@ -86,7 +89,7 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
         # Partially initialize the acquisition function to work with the fmin interface
         # (only the x parameter is not specified)
         acqui = partial(acquisition, model=gp, eta=min(y), add=acq_add)
-        # plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax)
+        boplot.plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax2)
 
         # optimize acquisition function, repeat 10 times, use best result
         x_ = None
@@ -100,7 +103,8 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
                 x_ = opt_res.x
                 y_ = opt_res.fun[0]
 
-        boplot.indicate_next_sample(x_, ax=ax)
+        boplot.indicate_next_sample(x_, ax=ax1)
+        boplot.indicate_next_sample(x_, ax=ax2)
         x.append(x_)
         y.append(f(x_))
 
@@ -110,7 +114,7 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
 
 
         # ----------Plotting calls---------------
-        ax.legend()
+        ax1.legend()
         plt.show(plt.gcf())
         # ---------------------------------------
 

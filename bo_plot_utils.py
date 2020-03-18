@@ -179,19 +179,33 @@ def plot_complete_graph(X_, Y_, model, confidence_intervals=None, title=None, ax
 
 
 # Plot acquisition function
-def plot_acquisition_function(acquisition, eta, model, add=None, ax=None):
+def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, ax=None):
+    """
+    Generate a plot to visualize the given acquisition function for the model.
+    :param acquisition: Acquisition function handle, from bo_configurations.acquisition_functions.
+    :param eta: Best observed value thus far.
+    :param model: GP to be used as a model.
+    :param add: Additional parameters passed to the acquisition function.
+    :param invert: When True (default), it is assumed that the acquisition function needs to be inverted for plotting.
+    :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
+    generated and the corresponding axes object is returned.
+    :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
+    """
     return_flag = False
     if ax is None:
         fig, ax = plt.subplots(1, 1, squeeze=True)
         return_flag = True
 
-    X_ = get_plot_domain()
-    acquisition_fun = acquisition_functions[acquisition](X_, model=model, eta=eta, add=add, plotting=True)
-    zipped = list(zip(X_, acquisition_fun))
-    zipped.sort(key = lambda t: t[0])
-    X_, acquisition_fun = list(zip(*zipped))
+    X_ = get_plot_domain().reshape(-1)
+    acquisition_fun = acquisition_functions[acquisition](X_, model=model, eta=eta, add=add)
+    if invert:
+        acquisition_fun = -acquisition_fun
+    #zipped = list(zip(X_, acquisition_fun))
+    #zipped.sort(key = lambda t: t[0])
+    #X_, acquisition_fun = list(zip(*zipped))
 
     ax.plot(X_, acquisition_fun, color=colors['acq_fun'], label=labels[acquisition])
+    ax.fill_between(X_, acquisition_fun, ybounds[0], facecolor=colors['acq_func_fill'])
 
     return ax if return_flag else None
 
@@ -201,10 +215,11 @@ def plot_acquisition_function(acquisition, eta, model, add=None, ax=None):
     # plt.clf()
 
 
-def indicate_next_sample(x, ax=None):
+def indicate_next_sample(x, ybounds=ybounds, ax=None):
     """
     Draw a vertical line at the given configuration to indicate the next configuration to be sampled.
     :param x: Configuration.
+    :param ybounds: A 2-tuple containing the upper and lower plotting bounds. By default uses bo_configurations.ybounds.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
