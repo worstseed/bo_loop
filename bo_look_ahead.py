@@ -69,17 +69,22 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
     :return: all evaluated points.
     """
 
+    logging.debug("Running BO with Acquisition Function {0}, maximum iterations {1}, initial design {2}, "
+                  "acq_add {3} and init {4}".format(acquisition, max_iter, initial_design, acq_add, init))
     x, y = initialize_dataset(initial_design=initial_design, init=init)
-    print(x,y)
+    logging.debug("Initialized dataset with:\nsamples {0}\nObservations {1}".format(x, y))
 
     for i in range(1, max_iter):  # BO loop
-        logging.debug('Sample #%d' % (init + i))
+        logging.debug('Sample #%d' % (i))
 
         gp = Pipeline([
             ["standardize", MinMaxScaler(feature_range=(0, 1))],
             ["GP", GPR(kernel=Matern(nu=2.5), normalize_y=True, n_restarts_optimizer=10, random_state=SEED)]
         ])
         gp.fit(x, y)  # fit the model
+        # noinspection PyStringFormat
+        logging.debug("Model fit to dataset.\nOriginal Inputs: {0}\nOriginal Observations: {1}\n"
+                      "Predicted Means: {2}\nPredicted STDs: {3}".format(x, y, *(gp.predict(x, return_std=True))))
         ax = plot_search_graph(x, y, gp)
 
         # Partially initialize the acquisition function to work with the fmin interface
@@ -136,9 +141,9 @@ if __name__ == '__main__':
                                 choices=['random', 'uniform', 'presentation'],
                                 help='How to choose first observations.')
     cmdline_parser.add_argument('-v', '--verbose',
-                                default='INFO',
-                                choices=['INFO', 'DEBUG'],
-                                help='verbosity')
+                                default=False,
+                                help='verbosity',
+                                action='store_true')
     cmdline_parser.add_argument('-a', '--acquisition',
                                 default='LCB',
                                 choices=['LCB', 'EI', 'PI'],
@@ -154,7 +159,7 @@ if __name__ == '__main__':
                                 required=False,
                                 type=int)
     args, unknowns = cmdline_parser.parse_known_args()
-    log_lvl = logging.INFO if args.verbose == 'INFO' else logging.DEBUG
+    log_lvl = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_lvl)
 
     if unknowns:

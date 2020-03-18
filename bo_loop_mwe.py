@@ -7,7 +7,7 @@ from functools import partial
 import numpy as np
 from scipy.optimize import minimize
 from sklearn.gaussian_process import GaussianProcessRegressor as GPR
-from sklearn.gaussian_process.kernels import Matern
+from sklearn.gaussian_process.kernels import Matern, RBF
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.metrics import mean_squared_error
@@ -37,7 +37,7 @@ def run_bo(acquisition, max_iter, init, seed, initial_design, acq_add):
     elif initial_design == 'random':
         x = np.random.uniform(bounds['lower'], bounds['upper'], init).reshape(-1, 1).tolist()
     elif initial_design == 'presentation':
-        x = np.array([3, 4, 4.6, 4.8, 5, 9.4, 10, 12.7]).reshape(-1, 1).tolist()
+        x = np.array([2, 3, 7, 4.6, 9.4, 10, 12.3]).reshape(-1, 1).tolist()
 
     # get corresponding response values
     y = list(map(f, x))
@@ -46,8 +46,7 @@ def run_bo(acquisition, max_iter, init, seed, initial_design, acq_add):
     for i in range(max_iter - init):  # BO loop
         logging.debug('Sample #%d' % (init + i))
         #Feel free to adjust the hyperparameters
-        gp = Pipeline([["standardize", MinMaxScaler(feature_range=(0, 1))],
-                      ["GP", GPR(kernel=Matern(nu=2.5), normalize_y=True, n_restarts_optimizer=10, random_state=seed)]])
+        gp = GPR(kernel=Matern())
         gp.fit(x, y)  # fit the model
 
         # Partially initialize the acquisition function to work with the fmin interface
@@ -71,12 +70,14 @@ def run_bo(acquisition, max_iter, init, seed, initial_design, acq_add):
         print("After {0}. loop iteration".format(i))
         print("x: {0:.3E}, y: {1:.3E}".format(x_[0], y_))
         # plot_search_graph(x, list(map(lambda x:-1*x, y)), gp)
-        if i:
-            ax = plot_search_graph(x, y, gp)
-            _ = plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax)
-            ax.legend()
-            ax.grid()
-            plt.show(plt.gcf())
+
+        ax = plot_search_graph(x, y, gp)
+
+        _ = plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax)
+
+        ax.legend()
+        ax.grid()
+        plt.show(plt.gcf())
 
     return y
 
@@ -90,15 +91,15 @@ if __name__ == '__main__':
     cmdline_parser = argparse.ArgumentParser('AutoMLLecture')
 
     cmdline_parser.add_argument('-n', '--num_func_evals',
-                                default=10,
+                                default=15,
                                 help='Number of function evaluations',
                                 type=int)
     cmdline_parser.add_argument('-f', '--fraction_init',
-                                default=0.4,
+                                default=0.3,
                                 help='Fraction of budget (num_func_evals) to spend on building initial model',
                                 type=float)
     cmdline_parser.add_argument('-i', '--initial_design',
-                                default="random",
+                                default="uniform",
                                 choices=['random', 'uniform', 'presentation'],
                                 help='How to choose first observations.')
     cmdline_parser.add_argument('-v', '--verbose',

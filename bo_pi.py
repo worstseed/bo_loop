@@ -1,16 +1,24 @@
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
+from sklearn.gaussian_process.kernels import Matern
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 from scipy.stats import norm
 import numpy as np
+from functools import partial
+from scipy.optimize import minimize
+from bo_plot_utils import plot_search_graph, plot_acquisition_function, acquisition_functions
+from bo_loop_obj_fun import f, bounds
+from bo_loop_acq_functions import EI, LCB, PI
 
 plt.style.use(['ggplot', 'seaborn-talk'])
 
-seed = 41
+# seed = 41
 # for seed in range(0, 100):
 #     print("Seed is ", seed)
-np.random.seed(seed)
+# np.random.seed(seed)
 
 
 # Toy objective function
