@@ -24,6 +24,6 @@ def f(x):
 
 # bounds for the search
 bounds = dict({
-    'lower': 0,
-    'upper': 15
+    'lower': 2,
+    'upper': 9
 })

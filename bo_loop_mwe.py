@@ -67,11 +67,11 @@ def run_bo(acquisition, max_iter, init, seed, initial_design, acq_add):
         x.append(x_)
         y.append(f(x_))
 
-        print("After {0}. loop iteration".format(i))
-        print("x: {0:.3E}, y: {1:.3E}".format(x_[0], y_))
+        logging.info("After {0}. loop iteration".format(i))
+        logging.info("x: {0:.3E}, y: {1:.3E}".format(x_[0], y_))
         # plot_search_graph(x, list(map(lambda x:-1*x, y)), gp)
 
-        ax = plot_search_graph(x, y, gp)
+        ax = plot_search_graph(X_=x, Y_=y, model=gp, confidence_intervals=[1., 2., 3.])
 
         _ = plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax)
 
