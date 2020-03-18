@@ -15,7 +15,7 @@ from sklearn.metrics import mean_squared_error
 from matplotlib import pyplot as plt
 
 from bo_loop_acq_functions import EI, LCB, PI
-from bo_plot_utils import plot_search_graph, plot_acquisition_function, acquisition_functions
+from bo_plot_utils import plot_complete_graph, plot_acquisition_function, acquisition_functions
 from bo_loop_obj_fun import f, bounds
 
 
@@ -51,7 +51,7 @@ def show_gp_for_dataset(x, y):
                     GPR(kernel=Matern(nu=2.5), normalize_y=True, n_restarts_optimizer=10, random_state=SEED)]])
     gp.fit(x, y)  # fit the model
 
-    ax = plot_search_graph(x, y, gp)
+    ax = plot_complete_graph(x, y, gp)
     ax.legend()
     ax.grid()
     plt.show(plt.gcf())
@@ -85,7 +85,7 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
         # noinspection PyStringFormat
         logging.debug("Model fit to dataset.\nOriginal Inputs: {0}\nOriginal Observations: {1}\n"
                       "Predicted Means: {2}\nPredicted STDs: {3}".format(x, y, *(gp.predict(x, return_std=True))))
-        ax = plot_search_graph(x, y, gp)
+        ax = plot_complete_graph(x, y, gp)
 
         # Partially initialize the acquisition function to work with the fmin interface
         # (only the x parameter is not specified)

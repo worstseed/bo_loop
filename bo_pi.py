@@ -9,7 +9,7 @@ from scipy.stats import norm
 import numpy as np
 from functools import partial
 from scipy.optimize import minimize
-from bo_plot_utils import plot_search_graph, plot_acquisition_function, acquisition_functions
+from bo_plot_utils import plot_complete_graph, plot_acquisition_function, acquisition_functions
 from bo_loop_obj_fun import f, bounds
 from bo_loop_acq_functions import EI, LCB, PI
 

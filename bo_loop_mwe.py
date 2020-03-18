@@ -15,7 +15,7 @@ from sklearn.metrics import mean_squared_error
 from matplotlib import pyplot as plt
 
 from bo_loop_acq_functions import EI, LCB, PI
-from bo_plot_utils import plot_search_graph, plot_acquisition_function, acquisition_functions
+from bo_plot_utils import plot_complete_graph, plot_acquisition_function, acquisition_functions
 from bo_loop_obj_fun import f, bounds
 
 
@@ -71,7 +71,8 @@ def run_bo(acquisition, max_iter, init, seed, initial_design, acq_add):
         logging.info("x: {0:.3E}, y: {1:.3E}".format(x_[0], y_))
         # plot_search_graph(x, list(map(lambda x:-1*x, y)), gp)
 
-        ax = plot_search_graph(X_=x, Y_=y, model=gp, confidence_intervals=[1., 2., 3.])
+        fig, ax = plt.subplots(1, 1, squeeze=True)
+        plot_complete_graph(X_=x, Y_=y, model=gp, confidence_intervals=[1., 2., 3.], title='Search Graph', ax=ax)
 
         _ = plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax)
 
