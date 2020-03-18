@@ -138,46 +138,6 @@ def plot_gp(model, confidence_intervals=None, custom_x=None, ax=None):
     return ax if return_flag else None
 
 
-# Plot objective function, observations (mark the newest) and the surrogate model (with mean and variance of GP)
-def plot_complete_graph(X_, Y_, model, confidence_intervals=None, title=None, ax=None):
-    """
-    Plot a GP's mean, evaluated data-points, and its confidence intervals.
-    :param X_: Configurations that have been evaluated
-    :param Y_: Observed Costs
-    :param model: GP
-    :param confidence_intervals: If None (default) no confidence envelope is plotted. If a list of positive values
-    [k1, k2, ...]is given, the confidence intervals k1*sigma, k2*sigma, ... are plotted.
-    :param title: Title of the plot.
-    :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
-    generated and the corresponding axes object is returned.
-    :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
-    """
-    return_flag = False
-    if ax is None:
-        fig, ax = plt.subplots(1, 1, squeeze=True)
-        return_flag = True
-
-    # new_x = np.concatenate((np.linspace(bounds['lower'], bounds['upper'], 100), np.array(X_).reshape(-1)), axis=0)
-    # new_x.sort()
-    # mu, sigma = model.predict(new_x.reshape(-1, 1), return_std=True)
-    # mu, sigma = -mu, -sigma
-
-    plot_objective_function(ax=ax)
-    plot_gp(model=model, confidence_intervals=confidence_intervals, ax=ax, custom_x=X_)
-
-    # Mark Observations - Theoretically, there is no need to put this in a separate function and only plot_gp should be
-    # used directly, but doing so allows better re-usability as well as avoids the need to import all the dictionaries
-    # in other files.
-    mark_observations(X_, Y_, mark_incumbent=True, ax=ax)
-
-    # Disabled due to ambiguous interpretation of the utility of 'newest observation' - no need to put this in a function
-    # ax.scatter(X_[-1], Y_[-1], color=colors['new_observation'], marker='v', label="Newest observation", zorder=10)
-    ax.set_xlabel(labels['xlabel'])
-    ax.set_ylabel(labels['ylabel'])
-    ax.set_title(title)
-    return ax if return_flag else None
-
-
 # Plot acquisition function
 def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, ax=None):
     """

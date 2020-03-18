@@ -27,7 +27,8 @@ labels = dict({
     LCB: 'Lower Confidence Bound',
     EI: 'Expected Improvement',
     'xlabel': '$\lambda$',
-    'ylabel': 'c($\lambda$)',
+    'gp_ylabel': 'c($\lambda$)',
+    'acq_ylabel': '$u(\lambda)$'
 })
 
 ylabels = dict({

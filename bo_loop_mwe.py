@@ -8,13 +8,9 @@ import numpy as np
 from scipy.optimize import minimize
 from sklearn.gaussian_process import GaussianProcessRegressor as GPR
 from sklearn.gaussian_process.kernels import Matern
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.metrics import mean_squared_error
 
 from matplotlib import pyplot as plt
 
-from bo_loop_acq_functions import EI, LCB, PI
 import bo_plot_utils as boplot
 from bo_configurations import *
 
@@ -65,12 +61,14 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
     for i in range(1, max_iter):  # BO loop
         logging.debug('Sample #%d' % (i))
 
+        # Fit GP to the currently available dataset
         gp = GPR(kernel=Matern())
         logging.debug("Fitting GP to\nx: {}\ny:{}".format(x, y))
         gp.fit(x, y)  # fit the model
 
         # ----------Plotting calls---------------
         fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
+        fig.tight_layout()
         ax1.set_xlim(xbounds)
         ax1.set_ylim(ybounds)
         ax1.grid()
@@ -89,7 +87,8 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
         # Partially initialize the acquisition function to work with the fmin interface
         # (only the x parameter is not specified)
         acqui = partial(acquisition, model=gp, eta=min(y), add=acq_add)
-        boplot.plot_acquisition_function(acquisition, min(y), gp, acq_add, ax=ax2)
+
+        boplot.plot_acquisition_function(acquisition, min(y), gp, acq_add, invert=True, ax=ax2)
 
         # optimize acquisition function, repeat 10 times, use best result
         x_ = None
@@ -103,8 +102,12 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
                 x_ = opt_res.x
                 y_ = opt_res.fun[0]
 
+        # ----------Plotting calls---------------
         boplot.indicate_next_sample(x_, ax=ax1)
         boplot.indicate_next_sample(x_, ax=ax2)
+        # ---------------------------------------
+
+        # Update dataset with new observation
         x.append(x_)
         y.append(f(x_))
 
@@ -114,7 +117,15 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
 
 
         # ----------Plotting calls---------------
-        ax1.legend()
+        for ax in (ax1, ax2):
+            ax.legend()
+            ax.set_xlabel(labels['xlabel'])
+
+        ax1.set_ylabel(labels['gp_ylabel'])
+        ax1.set_title("Visualization of GP", loc='left')
+
+        ax2.set_title("Visualization of Acquisition Function", loc='left')
+        ax2.set_ylabel(labels['acq_ylabel'])
         plt.show(plt.gcf())
         # ---------------------------------------
 
