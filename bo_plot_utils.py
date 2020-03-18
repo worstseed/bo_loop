@@ -20,7 +20,7 @@ def get_plot_domain():
     :return: A NumPy-array of shape [-1, 1]
     """
 
-    return np.arange(bounds['lower'], bounds['upper'], 1 / params['sample_precision']).reshape(-1, 1)
+    return np.arange(xbounds[0], xbounds[1], 1 / params['sample_precision']).reshape(-1, 1)
 
 
 # Plot objective function, defined f(x)
@@ -199,3 +199,21 @@ def plot_acquisition_function(acquisition, eta, model, add=None, ax=None):
     # dt_string = now.strftime("%d_%m_%Y__%H_%M_%S.%f")
     # plt.savefig("../plots/bo_loop/" + dt_string + ".png")
     # plt.clf()
+
+
+def indicate_next_sample(x, ax=None):
+    """
+    Draw a vertical line at the given configuration to indicate the next configuration to be sampled.
+    :param x: Configuration.
+    :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
+    generated and the corresponding axes object is returned.
+    :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
+    """
+    return_flag = False
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, squeeze=True)
+        return_flag = True
+
+
+
+    return ax if return_flag else None

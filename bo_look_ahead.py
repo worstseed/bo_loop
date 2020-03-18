@@ -33,9 +33,9 @@ def initialize_dataset(initial_design, init=None):
 
     # sample initial query points
     if initial_design == 'uniform':
-        x = np.linspace(bounds['lower'], bounds['upper'], init).reshape(-1, 1).tolist()
+        x = np.linspace(xbounds[0], xbounds[1], init).reshape(-1, 1).tolist()
     elif initial_design == 'random':
-        x = np.random.uniform(bounds['lower'], bounds['upper'], init).reshape(-1, 1).tolist()
+        x = np.random.uniform(xbounds[0], xbounds[1], init).reshape(-1, 1).tolist()
     elif initial_design == 'presentation':
         x = np.array(INIT_X_PRESENTATION).reshape(-1, 1).tolist()
 
@@ -71,6 +71,8 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
 
         # ----------Plotting calls---------------
         fig, ax = plt.subplots(1, 1, squeeze=True)
+        ax.set_xlim(xbounds)
+        ax.set_ylim(ybounds)
         boplot.plot_objective_function(ax=ax)
         boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0], ax=ax, custom_x=x)
         boplot.mark_observations(X_=x, Y_=y, ax=ax)
@@ -90,8 +92,8 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
         y_ = 10000
         # Feel free to adjust the hyperparameters
         for j in range(NUM_ACQ_OPTS):
-            opt_res = minimize(acqui, np.random.uniform(bounds['lower'], bounds['upper']),
-                               bounds=[[bounds['lower'], bounds['upper']]],
+            opt_res = minimize(acqui, np.random.uniform(xbounds[0], xbounds[1]),
+                               #bounds=xbounds,
                                options={'maxfun': 20, 'maxiter': 20}, method="L-BFGS-B")
             if opt_res.fun[0] < y_:
                 x_ = opt_res.x

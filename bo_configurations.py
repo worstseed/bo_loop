@@ -49,7 +49,5 @@ def f(x):
     return x[0]/5 * np.sin(x[0]) + x[0]/7 * np.cos(2 * x[0])
 
 # bounds for the search
-bounds = dict({
-    'lower': 2,
-    'upper': 9
-})
+xbounds = [2, 9]
+ybounds = [-3, 3]
