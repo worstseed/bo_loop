@@ -68,6 +68,8 @@ def visualize_look_ahead(initial_design, init=None):
     :return: None
     """
 
+    # boplot.set_rcparams(**{'legend.loc': 'lower left'})
+
     logging.debug("Visualizing Look-Ahead with initial design {} and init {}".format(initial_design, init))
     # Initialize dummy dataset
     x, y = initialize_dataset(initial_design=initial_design, init=init)
@@ -107,8 +109,7 @@ def visualize_look_ahead(initial_design, init=None):
     # -------------------------Plotting madness begins---------------------------
     # Draw Figure 1.
 
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    fig.tight_layout()
+    # fig.tight_layout()
     labels['gp_mean'] = r'Mean - $\mu^t(\cdot)$'
     # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^t$'
     def draw_figure_1(ax):
@@ -116,7 +117,7 @@ def visualize_look_ahead(initial_design, init=None):
         ax.set_ylim(ybounds)
         ax.grid()
         boplot.plot_objective_function(ax=ax)
-        boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0], ax=ax, custom_x=x)
+        boplot.plot_gp(model=gp, confidence_intervals=[1.0], ax=ax, custom_x=x)
         boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, ax=ax)
 
         ax.legend()
@@ -124,12 +125,20 @@ def visualize_look_ahead(initial_design, init=None):
         ax.set_ylabel(labels['gp_ylabel'])
         ax.set_title(r"Visualization of $\mathcal{G}^t$", loc='left')
 
-    draw_figure_1(ax)
     if TOGGLE_PRINT:
+        fig, ax = plt.subplots(1, 1, squeeze=True)
+        draw_figure_1(ax)
+        plt.tight_layout()
         plt.savefig("look_ahead_1.pdf", dpi='figure')
 
+    fig, ax = plt.subplots(1, 1, squeeze=True)
+    draw_figure_1(ax)
     boplot.highlight_configuration(mu_star_t_xy[0], lloc='bottom', ax=ax)
-    boplot.highlight_output(mu_star_t_xy[1], label='${(\mu^*)}^{t}$', lloc='right', ax=ax)
+    boplot.highlight_output(mu_star_t_xy[1], label='', lloc='right', ax=ax, fontsize=30)
+    boplot.annotate_y_edge(label='${(\mu^*)}^{t}$', xy=mu_star_t_xy, align='right', ax=ax)
+    ax.legend().remove()
+
+    plt.tight_layout()
     if TOGGLE_PRINT:
         plt.savefig("look_ahead_KG_2.pdf", dpi='figure')
     else:
@@ -139,8 +148,6 @@ def visualize_look_ahead(initial_design, init=None):
     # ---------------------------------------
     # Draw Figure 2.
 
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    fig.tight_layout()
     labels['gp_mean'] = r'Mean - $\mu^{t+1}(\cdot)|_\lambda$'
     # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^{t+1}|_\lambda$'
 
@@ -149,7 +156,7 @@ def visualize_look_ahead(initial_design, init=None):
         ax.set_ylim(ybounds)
         ax.grid()
         boplot.plot_objective_function(ax=ax)
-        boplot.plot_gp(model=gp2, confidence_intervals=[1.0, 2.0], ax=ax, custom_x=X2_)
+        boplot.plot_gp(model=gp2, confidence_intervals=[1.0], ax=ax, custom_x=X2_)
         boplot.mark_observations(X_=X2_, Y_=Y2_, highlight_datapoint=np.where(np.isclose(X2_, x_))[0],
                                  mark_incumbent=False,
                                  highlight_label=r"Hypothetical Observation $<\lambda, c(\lambda)>$", ax=ax)
@@ -157,15 +164,22 @@ def visualize_look_ahead(initial_design, init=None):
         ax.legend()
         ax.set_xlabel(labels['xlabel'])
         ax.set_ylabel(labels['gp_ylabel'])
-        ax.set_title(r"Visualization of $\mathcal{G}^{t}|_\lambda$", loc='left')
+        ax.set_title(r"Visualization of $\mathcal{G}^{(t+1)}|_\lambda$", loc='left')
 
-    draw_figure_2(ax)
     if TOGGLE_PRINT:
+        fig, ax = plt.subplots(1, 1, squeeze=True)
+        draw_figure_2(ax)
+        plt.tight_layout()
         plt.savefig("look_ahead_3.pdf", dpi='figure')
 
+    fig, ax = plt.subplots(1, 1, squeeze=True)
+    draw_figure_2(ax)
     boplot.highlight_configuration(mu_star_t1_xy[0], lloc='bottom', ax=ax)
-    boplot.highlight_output(mu_star_t1_xy[1], label='${(\mu^*)}^{t+1}|_\lambda$', lloc='right', ax=ax)
+    boplot.highlight_output(mu_star_t1_xy[1], label='', lloc='right', ax=ax, fontsize=28)
+    boplot.annotate_y_edge(label='${(\mu^*)}^{(t+1)}|_\lambda$', xy=mu_star_t1_xy, align='right', ax=ax)
+    ax.legend().remove()
 
+    plt.tight_layout()
     if TOGGLE_PRINT:
         plt.savefig("look_ahead_KG_4.pdf", dpi='figure')
     else:
@@ -176,16 +190,19 @@ def visualize_look_ahead(initial_design, init=None):
     # ---------------------------------------
     # Draw Figure 3 for KG
     fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True)
-    fig.tight_layout()
+    # fig.tight_layout()
     labels['gp_mean'] = r'Mean - $\mu^t(\cdot)$'
     draw_figure_1(ax1)
-    boplot.highlight_output(mu_star_t_xy[1], label='${(\mu^*)}^{t}$', lloc='right', ax=ax1)
+    boplot.highlight_output(mu_star_t_xy[1], label='', lloc='right', ax=ax1, fontsize=30)
+    boplot.annotate_y_edge(label='${(\mu^*)}^{t}$', xy=mu_star_t_xy, align='right', ax=ax1)
     ax1.get_legend().remove()
     labels['gp_mean'] = r'Mean - $\mu^{t+1}(\cdot)|_\lambda$'
     draw_figure_2(ax2)
-    boplot.highlight_output(mu_star_t1_xy[1], label='${(\mu^*)}^{t+1}|_\lambda$', lloc='left', ax=ax2)
+    boplot.highlight_output(mu_star_t1_xy[1], label='', lloc='right', ax=ax2, fontsize=28)
+    boplot.annotate_y_edge(label='${(\mu^*)}^{(t+1)}|_\lambda$', xy=mu_star_t1_xy, align='left', ax=ax2)
     ax2.get_legend().remove()
 
+    plt.tight_layout()
     if TOGGLE_PRINT:
         plt.savefig("look_ahead_KG_5.pdf", dpi='figure')
     else:

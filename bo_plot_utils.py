@@ -5,15 +5,20 @@ import logging
 from bo_configurations import *
 from matplotlib import rcParams
 
-rcParams["font.size"] = "16"
+rcParams["font.size"] = 32
 rcParams["axes.linewidth"] = 3
-rcParams["lines.markersize"] = 15
+rcParams["lines.linewidth"] = 4
+rcParams["lines.markersize"] = 26
 rcParams["legend.loc"] = "lower right"
-rcParams['axes.labelsize'] = 20
+rcParams["legend.fontsize"] = 26
+rcParams['axes.labelsize'] = 36
+rcParams['xtick.minor.pad'] = 30.0
+#rcParams['ytick.minor.pad'] = -50.0
+
 
 
 def enable_printing():
-    rcParams["figure.figsize"] = (16, 9)
+    rcParams["figure.figsize"] = (21, 9)
     rcParams["figure.dpi"] = 300.0
     rcParams["savefig.dpi"] = 'figure'
     rcParams["savefig.format"] = 'pdf'
@@ -21,6 +26,33 @@ def enable_printing():
 def enable_onscreen_display():
     rcParams["figure.figsize"] = (6.4, 4.8)
     rcParams["figure.dpi"] = 100.0
+
+
+def set_rcparams(**kwargs):
+    for key, value in kwargs.items():
+        rcParams[key] = value
+
+
+def annotate_y_edge(label, xy, ax, align='right'):
+    """
+    Place an annotation that hugs the left or right margin.
+    :param label: Text to annotate with.
+    :param y: xy-coordinates
+    :param ax: matplotlib.Axes.axes object given by the user
+    :param align: 'left' or 'right' (default) edge to hug.
+    :return: None.
+    """
+
+    if align == 'left':
+        x = xbounds[0]
+    else:
+        x = xbounds[1]
+
+    textxy = ax.transData.transform([x, xy[1]])
+    textxy = ax.transData.inverted().transform((textxy[0], textxy[1] - 6 * rcParams["font.size"]))
+    # logging.info("Placing text at {}".format(textxy))
+
+    ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment=align, zorder=10)
 
 
 def get_plot_domain():
@@ -198,7 +230,7 @@ def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, a
     # plt.clf()
 
 
-def highlight_configuration(x, ybounds=ybounds, label=None, lloc='bottom', ax=None):
+def highlight_configuration(x, ybounds=ybounds, label=None, lloc='bottom', ax=None, **kwargs):
     """
     Draw a vertical line at the given configuration to highlight it.
     :param x: Configuration.
@@ -234,13 +266,13 @@ def highlight_configuration(x, ybounds=ybounds, label=None, lloc='bottom', ax=No
             top=False, labeltop=False
         )
 
-    label_props = {'color': colors['minor_tick_highlight']}
+    label_props = {'color': colors['minor_tick_highlight'], **kwargs}
     ax.set_xticks([x], minor=True)
     ax.set_xticklabels([xlabel], label_props, minor=True)
 
     return ax if return_flag else None
 
-def highlight_output(y, xbounds=xbounds, label=None, lloc='left', ax=None):
+def highlight_output(y, xbounds=xbounds, label=None, lloc='left', ax=None, **kwargs):
     """
     Draw a horizontal line at the given y-value to highlight it.
     :param y: y-value to be highlighted.
@@ -276,7 +308,7 @@ def highlight_output(y, xbounds=xbounds, label=None, lloc='left', ax=None):
         )
 
     ylabel = "{0:.2f}".format(y) if label is None else label
-    label_props = {'color': colors['minor_tick_highlight']}
+    label_props = {'color': colors['minor_tick_highlight'], **kwargs}
     ax.set_yticks([y], minor=True)
     ax.set_yticklabels([ylabel], label_props, minor=True)
 
