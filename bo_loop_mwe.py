@@ -103,8 +103,8 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
                 y_ = opt_res.fun[0]
 
         # ----------Plotting calls---------------
-        boplot.indicate_next_sample(x_, ax=ax1)
-        boplot.indicate_next_sample(x_, ax=ax2)
+        boplot.highlight_configuration(x_, ax=ax1)
+        boplot.highlight_configuration(x_, ax=ax2)
         # ---------------------------------------
 
         # Update dataset with new observation

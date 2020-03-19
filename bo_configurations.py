@@ -14,7 +14,7 @@ colors = dict({
     'acq_fun': 'black',
     'envelope_min_opacity': 0.3,
     'envelope_max_opacity': 0.8,
-    'next_sample': 'red',
+    'minor_tick_highlight': 'red',
     'acq_func_fill': 'lightblue',
 })
 

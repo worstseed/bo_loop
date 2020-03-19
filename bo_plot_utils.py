@@ -2,10 +2,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 import logging
 
-from bo_loop_acq_functions import LCB, EI, PI
 from bo_configurations import *
 from matplotlib import rcParams
-# from datetime import datetime
 
 rcParams["font.size"] = "16"
 rcParams["axes.linewidth"] = 3
@@ -189,11 +187,14 @@ def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, a
     # plt.clf()
 
 
-def indicate_next_sample(x, ybounds=ybounds, label=None, ax=None):
+def highlight_configuration(x, ybounds=ybounds, label=None, lloc='bottom', ax=None):
     """
-    Draw a vertical line at the given configuration to indicate the next configuration to be sampled.
+    Draw a vertical line at the given configuration to highlight it.
     :param x: Configuration.
-    :param ybounds: A 2-tuple containing the upper and lower plotting bounds. By default uses bo_configurations.ybounds.
+    :param ybounds: A 2-tuple containing the lower and upper plotting bounds. By default uses bo_configurations.ybounds.
+    :param label: If None (default), the x-value up to decimal places is placed as a minor tick, otherwise the given
+    label is used.
+    :param lloc: Can be either 'top' or 'bottom' (default) to indicate the position of the label on the graph.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
@@ -203,9 +204,69 @@ def indicate_next_sample(x, ybounds=ybounds, label=None, ax=None):
         fig, ax = plt.subplots(1, 1, squeeze=True)
         return_flag = True
 
-    ax.vlines(x, ymin=ybounds[0], ymax=ybounds[1], colors=colors['next_sample'], linestyles='dashed', label='Next Sample')
-    ax.set_xticks(x, minor=True)
-    xlabel = "{0:.2f}".format(x[0]) if label is None else label
-    ax.set_xticklabels([xlabel], {'color': colors['next_sample']}, minor=True)
-    #logging.info("Xticks: {}".format(ax.xaxis.get_minor_ticks()))
+    # Assume we will recieve x as a view on a numpy array
+    x = x.reshape(-1)[0]
+
+    ax.vlines(x, ymin=ybounds[0], ymax=ybounds[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
+    xlabel = "{0:.2f}".format(x) if label is None else label
+
+    if lloc == 'top':
+        ax.tick_params(
+            which='minor',
+            bottom=False, labelbottom=False,
+            top=True, labeltop=True
+        )
+    else:
+        ax.tick_params(
+            which='minor',
+            bottom=True, labelbottom=True,
+            top=False, labeltop=False
+        )
+
+    label_props = {'color': colors['minor_tick_highlight']}
+    ax.set_xticks([x], minor=True)
+    ax.set_xticklabels([xlabel], label_props, minor=True)
+
+    return ax if return_flag else None
+
+def highlight_output(y, xbounds=xbounds, label=None, lloc='left', ax=None):
+    """
+    Draw a horizontal line at the given y-value to highlight it.
+    :param y: y-value to be highlighted.
+    :param xbounds: A 2-tuple containing the lower and upper plotting bounds. By default uses bo_configurations.xbounds.
+    :param label: If None (default), the y-value up to decimal places is placed as a minor tick, otherwise the given
+    label is used.
+    :param lloc: Can be either 'left' (default) or 'right' to indicate the position of the label on the graph.
+    :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
+    generated and the corresponding axes object is returned.
+    :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
+    """
+    return_flag = False
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, squeeze=True)
+        return_flag = True
+
+    # Assume we will recieve y as a view on a numpy array
+    y = y.reshape(-1)[0]
+
+    ax.hlines(y, xmin=xbounds[0], xmax=xbounds[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
+
+    if lloc == 'right':
+        ax.tick_params(
+            which='minor',
+            left=False, labelleft=False,
+            right=True, labelright=True
+        )
+    else:
+        ax.tick_params(
+            which='minor',
+            left=True, labelleft=True,
+            right=False, labelright=False
+        )
+
+    ylabel = "{0:.2f}".format(y) if label is None else label
+    label_props = {'color': colors['minor_tick_highlight']}
+    ax.set_yticks([y], minor=True)
+    ax.set_yticklabels([ylabel], label_props, minor=True)
+
     return ax if return_flag else None

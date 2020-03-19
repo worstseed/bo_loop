@@ -16,7 +16,7 @@ from bo_configurations import *
 
 
 SEED = None
-INIT_X_PRESENTATION = [3, 4, 4.6, 4.8, 5, 9.4, 10, 12.7]
+INIT_X_PRESENTATION = [2.5, 4, 6, 7, 8]
 NUM_ACQ_OPTS = 10 # Number of times the acquisition function is optimized while looking for the next x to sample.
 
 labels["xlabel"] = "$\lambda'$"
@@ -44,6 +44,21 @@ def initialize_dataset(initial_design, init=None):
     return x, y
 
 
+def get_mu_star(model):
+    """
+    Given a model, return the (x, y) coords of mu-star.
+    :param model: The underlying GP.
+    :return:
+    """
+
+    X_ = boplot.get_plot_domain()
+    mu = model.predict(X_).reshape(-1, 1)
+
+    coords = np.hstack((X_, mu))
+    idx = np.argmin(coords, axis=0)[1]
+    return coords[idx, :]
+
+
 def visualize_look_ahead(initial_design, init=None):
     """
     Visualize one-step of look-ahead.
@@ -61,7 +76,8 @@ def visualize_look_ahead(initial_design, init=None):
     gp = GPR(kernel=Matern())
     logging.debug("Fitting GP to\nx: {}\ny:{}".format(x, y))
     gp.fit(x, y)  # fit the model
-
+    mu_star_t_xy = get_mu_star(gp)
+    logging.info("Mu-star at time t: {}".format(mu_star_t_xy))
 
     # noinspection PyStringFormat
     logging.debug("Model fit to dataset.\nOriginal Inputs: {0}\nOriginal Observations: {1}\n"
@@ -69,7 +85,8 @@ def visualize_look_ahead(initial_design, init=None):
 
     # Assume next evaluation location
     # x_ = np.mean(x, keepdims=True)
-    x_ = np.array([[5.8]])
+    #x_ = np.array([[5.8]])
+    x_ = np.array([[5.0]])
     print(x_)
     y_ = f(x_[0])
 
@@ -83,6 +100,8 @@ def visualize_look_ahead(initial_design, init=None):
     gp2 = GPR(kernel=Matern())
     logging.debug("Fitting GP to\nx: {}\ny:{}".format(X2_, Y2_))
     gp2.fit(X2_, Y2_)  # fit the model
+    mu_star_t1_xy = get_mu_star(gp2)
+    logging.info("Mu-star at time t+1: {}".format(mu_star_t1_xy))
 
     # -------------------------Plotting madness begins---------------------------
     # Draw Figure 1.
@@ -105,6 +124,8 @@ def visualize_look_ahead(initial_design, init=None):
         ax.set_title(r"Visualization of $\mathcal{G}^t$", loc='left')
 
     draw_figure_1(ax)
+    boplot.highlight_configuration(mu_star_t_xy[0], lloc='bottom', ax=ax)
+    boplot.highlight_output(mu_star_t_xy[1], label='${(\mu^*)}^{t}$', lloc='right', ax=ax)
     plt.show(plt.gcf())
 
     # End of figure 1.
@@ -132,6 +153,8 @@ def visualize_look_ahead(initial_design, init=None):
         ax.set_title(r"Visualization of $\mathcal{G}^{t}|_\lambda$", loc='left')
 
     draw_figure_2(ax)
+    boplot.highlight_configuration(mu_star_t1_xy[0], lloc='bottom', ax=ax)
+    boplot.highlight_output(mu_star_t1_xy[1], label='${(\mu^*)}^{t+1}|_\lambda$', lloc='right', ax=ax)
     plt.show(plt.gcf())
 
     # End of figure 2.
@@ -141,9 +164,11 @@ def visualize_look_ahead(initial_design, init=None):
     fig.tight_layout()
     labels['gp_mean'] = r'Mean - $\mu^t(\cdot)$'
     draw_figure_1(ax1)
+    boplot.highlight_output(mu_star_t_xy[1], label='${(\mu^*)}^{t}$', lloc='right', ax=ax1)
     ax1.get_legend().remove()
     labels['gp_mean'] = r'Mean - $\mu^{t+1}(\cdot)|_\lambda$'
     draw_figure_2(ax2)
+    boplot.highlight_output(mu_star_t1_xy[1], label='${(\mu^*)}^{t+1}|_\lambda$', lloc='left', ax=ax2)
     ax2.get_legend().remove()
     plt.show(plt.gcf())
 
