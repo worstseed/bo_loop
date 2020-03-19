@@ -16,6 +16,7 @@ from bo_configurations import *
 
 
 SEED = None
+TOGGLE_PRINT = False
 INIT_X_PRESENTATION = [2.5, 4, 6, 7, 8]
 NUM_ACQ_OPTS = 10 # Number of times the acquisition function is optimized while looking for the next x to sample.
 
@@ -124,9 +125,15 @@ def visualize_look_ahead(initial_design, init=None):
         ax.set_title(r"Visualization of $\mathcal{G}^t$", loc='left')
 
     draw_figure_1(ax)
+    if TOGGLE_PRINT:
+        plt.savefig("look_ahead_1.pdf", dpi='figure')
+
     boplot.highlight_configuration(mu_star_t_xy[0], lloc='bottom', ax=ax)
     boplot.highlight_output(mu_star_t_xy[1], label='${(\mu^*)}^{t}$', lloc='right', ax=ax)
-    plt.show(plt.gcf())
+    if TOGGLE_PRINT:
+        plt.savefig("look_ahead_KG_2.pdf", dpi='figure')
+    else:
+        plt.show()
 
     # End of figure 1.
     # ---------------------------------------
@@ -153,9 +160,17 @@ def visualize_look_ahead(initial_design, init=None):
         ax.set_title(r"Visualization of $\mathcal{G}^{t}|_\lambda$", loc='left')
 
     draw_figure_2(ax)
+    if TOGGLE_PRINT:
+        plt.savefig("look_ahead_3.pdf", dpi='figure')
+
     boplot.highlight_configuration(mu_star_t1_xy[0], lloc='bottom', ax=ax)
     boplot.highlight_output(mu_star_t1_xy[1], label='${(\mu^*)}^{t+1}|_\lambda$', lloc='right', ax=ax)
-    plt.show(plt.gcf())
+
+    if TOGGLE_PRINT:
+        plt.savefig("look_ahead_KG_4.pdf", dpi='figure')
+    else:
+        plt.show()
+
 
     # End of figure 2.
     # ---------------------------------------
@@ -170,7 +185,11 @@ def visualize_look_ahead(initial_design, init=None):
     draw_figure_2(ax2)
     boplot.highlight_output(mu_star_t1_xy[1], label='${(\mu^*)}^{t+1}|_\lambda$', lloc='left', ax=ax2)
     ax2.get_legend().remove()
-    plt.show(plt.gcf())
+
+    if TOGGLE_PRINT:
+        plt.savefig("look_ahead_KG_5.pdf", dpi='figure')
+    else:
+        plt.show()
 
 
 
@@ -202,6 +221,10 @@ if __name__ == '__main__':
                                 help='Which seed to use',
                                 required=False,
                                 type=int)
+    cmdline_parser.add_argument('-p', '--print',
+                                default=False,
+                                help='Print graphs to file instead of displaying on screen.',
+                                action='store_true')
 
     args, unknowns = cmdline_parser.parse_known_args()
     log_lvl = logging.DEBUG if args.verbose else logging.INFO
@@ -217,6 +240,11 @@ if __name__ == '__main__':
     SEED = args.seed
     np.random.seed(SEED)
 
+    TOGGLE_PRINT = args.print
+    if TOGGLE_PRINT:
+        boplot.enable_printing()
+    else:
+        boplot.enable_onscreen_display()
 
     #init_size = max(1, int(args.num_func_evals * args.fraction_init))
 

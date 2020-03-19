@@ -12,6 +12,17 @@ rcParams["legend.loc"] = "lower right"
 rcParams['axes.labelsize'] = 20
 
 
+def enable_printing():
+    rcParams["figure.figsize"] = (16, 9)
+    rcParams["figure.dpi"] = 300.0
+    rcParams["savefig.dpi"] = 'figure'
+    rcParams["savefig.format"] = 'pdf'
+
+def enable_onscreen_display():
+    rcParams["figure.figsize"] = (6.4, 4.8)
+    rcParams["figure.dpi"] = 100.0
+
+
 def get_plot_domain():
     """
     Generates the default domain of configuration values to be plotted.
