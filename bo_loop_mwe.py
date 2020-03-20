@@ -75,7 +75,7 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
         ax1.set_ylim(ybounds)
         ax1.grid()
         ax2.set_xlim(xbounds)
-        ax2.set_ylim([0, 0.5])
+        ax2.set_ylim([0, 0.2])
         ax2.grid()
         boplot.plot_objective_function(ax=ax1)
         boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0], ax=ax1, custom_x=x)
