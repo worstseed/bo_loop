@@ -63,9 +63,9 @@ def get_plot_domain(precision=None, custom_x=None):
     :return: A NumPy-array of shape [-1, 1]
     """
     if precision is None:
-        X_ = np.arange(xbounds[0], xbounds[1], 1 / params['sample_precision']).reshape(-1, 1)
+        X_ = np.arange(bounds["x"][0], bounds["x"][1], 1 / params['sample_precision']).reshape(-1, 1)
     else:
-        X_ = np.arange(xbounds[0], xbounds[1], 1 / precision).reshape(-1, 1)
+        X_ = np.arange(bounds["x"][0], bounds["x"][1], 1 / precision).reshape(-1, 1)
     if custom_x is not None:
         custom_x = np.array(custom_x).reshape(-1, 1)
         logging.debug("Custom x has shape {0}".format(custom_x.shape))

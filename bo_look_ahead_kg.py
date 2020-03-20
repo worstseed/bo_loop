@@ -32,9 +32,9 @@ def initialize_dataset(initial_design, init=None):
 
     # sample initial query points
     if initial_design == 'uniform':
-        x = np.linspace(xbounds[0], xbounds[1], init).reshape(-1, 1).tolist()
+        x = np.linspace(bounds["x"][0], bounds["x"][1], init).reshape(-1, 1).tolist()
     elif initial_design == 'random':
-        x = np.random.uniform(xbounds[0], xbounds[1], init).reshape(-1, 1).tolist()
+        x = np.random.uniform(bounds["x"][0], bounds["x"][1], init).reshape(-1, 1).tolist()
     elif initial_design == 'presentation':
         x = np.array(INIT_X_PRESENTATION).reshape(-1, 1).tolist()
 
@@ -112,8 +112,8 @@ def visualize_look_ahead(initial_design, init=None):
     labels['gp_mean'] = r'Mean - $\mu^(t)(\cdot)$'
     # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^t$'
     def draw_figure_1(ax):
-        ax.set_xlim(xbounds)
-        ax.set_ylim(gp_ybounds)
+        ax.set_xlim(bounds["x"])
+        ax.set_ylim(bounds["gp_y"])
         ax.grid()
         boplot.plot_objective_function(ax=ax)
         boplot.plot_gp(model=gp, confidence_intervals=[1.0], ax=ax, custom_x=x)
@@ -151,8 +151,8 @@ def visualize_look_ahead(initial_design, init=None):
     # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^{t+1}|_\lambda$'
 
     def draw_figure_2(ax):
-        ax.set_xlim(xbounds)
-        ax.set_ylim(gp_ybounds)
+        ax.set_xlim(bounds["x"])
+        ax.set_ylim(bounds["gp_y"])
         ax.grid()
         boplot.plot_objective_function(ax=ax)
         boplot.plot_gp(model=gp2, confidence_intervals=[1.0], ax=ax, custom_x=X2_)

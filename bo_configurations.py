@@ -55,6 +55,8 @@ def f(x):
     return x[0]/5 * np.sin(x[0]) + x[0]/7 * np.cos(2 * x[0])
 
 # bounds for the search
-xbounds = (2, 9)
-gp_ybounds = (-3, 3)
-acq_ybounds = (0, 5)
+bounds = {
+    "x": (2, 9),
+    "gp_y": (-3, 3),
+    "acq_y": (0, 5),
+}
