@@ -18,6 +18,8 @@ from bo_configurations import *
 SEED = None
 INIT_X_PRESENTATION = [3, 4, 4.6, 4.8, 5, 9.4, 10, 12.7]
 NUM_ACQ_OPTS = 10 # Number of times the acquisition function is optimized while looking for the next x to sample.
+TOGGLE_PRINT = False
+
 
 def initialize_dataset(initial_design, init=None):
     """
@@ -126,7 +128,10 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
 
         ax2.set_title("Visualization of Acquisition Function", loc='left')
         ax2.set_ylabel(labels['acq_ylabel'])
-        plt.show(plt.gcf())
+        if TOGGLE_PRINT:
+            plt.savefig("plot_{}.pdf".format(i), dpi='figure')
+        else:
+            plt.show()
         # ---------------------------------------
 
     return y
@@ -172,6 +177,11 @@ if __name__ == '__main__':
                                 help='Number of repeations for the experiment',
                                 required=False,
                                 type=int)
+    cmdline_parser.add_argument('-p', '--print',
+                                default=False,
+                                help='Print graphs to file instead of displaying on screen.',
+                                action='store_true')
+
     args, unknowns = cmdline_parser.parse_known_args()
     log_lvl = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_lvl)
@@ -185,6 +195,12 @@ if __name__ == '__main__':
     # Seed the RNG to obtain reproducible results
     SEED = args.seed
     np.random.seed(SEED)
+
+    TOGGLE_PRINT = args.print
+    if TOGGLE_PRINT:
+        boplot.enable_printing()
+    else:
+        boplot.enable_onscreen_display()
 
 
     #init_size = max(1, int(args.num_func_evals * args.fraction_init))
