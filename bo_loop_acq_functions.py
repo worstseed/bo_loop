@@ -40,7 +40,7 @@ def EI(x, model, eta, add=None, plotting=False):
         ei = improvement * norm.cdf(Z) + sigma * norm.pdf(Z)
         ei[sigma == 0.0] = 0.0
     # return ei
-    return -ei if plotting else ei
+    return ei if plotting else -ei
 
 def LCB(x, model, eta, add, plotting=False):
     """
