@@ -275,7 +275,7 @@ def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, a
     X_, acquisition_fun = list(zip(*zipped))
 
     ax.plot(X_, acquisition_fun, color=colors['acq_fun'], label=labels[acquisition])
-    ax.fill_between(X_, acquisition_fun, ybounds[0], facecolor=colors['acq_func_fill'])
+    ax.fill_between(X_, acquisition_fun, acq_ybounds[0], facecolor=colors['acq_func_fill'])
 
     return ax if return_flag else None
 
@@ -285,7 +285,7 @@ def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, a
     # plt.clf()
 
 
-def highlight_configuration(x, ybounds=ybounds, label=None, lloc='bottom', ax=None, **kwargs):
+def highlight_configuration(x, ybounds=gp_ybounds, label=None, lloc='bottom', ax=None, **kwargs):
     """
     Draw a vertical line at the given configuration to highlight it.
     :param x: Configuration.
