@@ -56,4 +56,5 @@ def f(x):
 
 # bounds for the search
 xbounds = (2, 9)
-ybounds = (-3, 3)
+gp_ybounds = (-3, 3)
+acq_ybounds = (0, 5)

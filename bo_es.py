@@ -91,7 +91,7 @@ def visualize_look_ahead(initial_design, init=None):
 
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
     ax1.set_xlim(xbounds)
-    ax1.set_ylim(ybounds)
+    ax1.set_ylim(gp_ybounds)
     ax2.set_xlim(xbounds)
     ax2.set_ylim((0, 1.0))
     ax1.grid()
@@ -130,7 +130,7 @@ def visualize_look_ahead(initial_design, init=None):
 
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
     ax1.set_xlim(xbounds)
-    ax1.set_ylim(ybounds)
+    ax1.set_ylim(gp_ybounds)
     ax2.set_xlim(xbounds)
     ax2.set_ylim((0, 1.0))
     ax1.grid()
@@ -178,7 +178,7 @@ def visualize_look_ahead(initial_design, init=None):
     # Draw 3 samples from GP
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
     ax1.set_xlim(xbounds)
-    ax1.set_ylim(ybounds)
+    ax1.set_ylim(gp_ybounds)
     ax2.set_xlim(xbounds)
     ax2.set_ylim((0, 1.0))
     ax1.grid()
@@ -228,7 +228,7 @@ def visualize_look_ahead(initial_design, init=None):
 
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
     ax1.set_xlim(xbounds)
-    ax1.set_ylim(ybounds)
+    ax1.set_ylim(gp_ybounds)
     ax2.set_xlim(xbounds)
     ax2.set_ylim((0, 1.0))
     ax1.grid()

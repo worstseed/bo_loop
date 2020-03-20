@@ -109,11 +109,11 @@ def visualize_look_ahead(initial_design, init=None):
     # Draw Figure 1.
 
     # fig.tight_layout()
-    labels['gp_mean'] = r'Mean - $\mu^t(\cdot)$'
+    labels['gp_mean'] = r'Mean - $\mu^(t)(\cdot)$'
     # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^t$'
     def draw_figure_1(ax):
         ax.set_xlim(xbounds)
-        ax.set_ylim(ybounds)
+        ax.set_ylim(gp_ybounds)
         ax.grid()
         boplot.plot_objective_function(ax=ax)
         boplot.plot_gp(model=gp, confidence_intervals=[1.0], ax=ax, custom_x=x)
@@ -122,7 +122,7 @@ def visualize_look_ahead(initial_design, init=None):
         ax.legend()
         ax.set_xlabel(labels['xlabel'])
         ax.set_ylabel(labels['gp_ylabel'])
-        ax.set_title(r"Visualization of $\mathcal{G}^t$", loc='left')
+        ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
 
     if TOGGLE_PRINT:
         fig, ax = plt.subplots(1, 1, squeeze=True)
@@ -134,7 +134,7 @@ def visualize_look_ahead(initial_design, init=None):
     draw_figure_1(ax)
     boplot.highlight_configuration(mu_star_t_xy[0], lloc='bottom', ax=ax)
     boplot.highlight_output(mu_star_t_xy[1], label='', lloc='right', ax=ax, fontsize=30)
-    boplot.annotate_y_edge(label='${(\mu^*)}^{t}$', xy=mu_star_t_xy, align='right', ax=ax)
+    boplot.annotate_y_edge(label='${(\mu^*)}^{(t)}$', xy=mu_star_t_xy, align='right', ax=ax)
     ax.legend().remove()
 
     plt.tight_layout()
@@ -152,7 +152,7 @@ def visualize_look_ahead(initial_design, init=None):
 
     def draw_figure_2(ax):
         ax.set_xlim(xbounds)
-        ax.set_ylim(ybounds)
+        ax.set_ylim(gp_ybounds)
         ax.grid()
         boplot.plot_objective_function(ax=ax)
         boplot.plot_gp(model=gp2, confidence_intervals=[1.0], ax=ax, custom_x=X2_)
@@ -190,12 +190,12 @@ def visualize_look_ahead(initial_design, init=None):
     # Draw Figure 3 for KG
     fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True)
     # fig.tight_layout()
-    labels['gp_mean'] = r'Mean - $\mu^t(\cdot)$'
+    labels['gp_mean'] = r'Mean - $\mu^(t)(\cdot)$'
     draw_figure_1(ax1)
     boplot.highlight_output(mu_star_t_xy[1], label='', lloc='right', ax=ax1, fontsize=30)
     boplot.annotate_y_edge(label='${(\mu^*)}^{t}$', xy=mu_star_t_xy, align='right', ax=ax1)
     ax1.get_legend().remove()
-    labels['gp_mean'] = r'Mean - $\mu^{t+1}(\cdot)|_\lambda$'
+    labels['gp_mean'] = r'Mean - $\mu^{(t+1)}(\cdot)|_\lambda$'
     draw_figure_2(ax2)
     boplot.highlight_output(mu_star_t1_xy[1], label='', lloc='right', ax=ax2, fontsize=28)
     boplot.annotate_y_edge(label='${(\mu^*)}^{(t+1)}|_\lambda$', xy=mu_star_t1_xy, align='left', ax=ax2)
