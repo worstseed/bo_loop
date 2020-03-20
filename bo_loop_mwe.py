@@ -17,7 +17,7 @@ from bo_configurations import *
 
 SEED = None
 INIT_X_PRESENTATION = [3, 4, 4.6, 4.8, 5, 9.4, 10, 12.7]
-NUM_ACQ_OPTS = 10 # Number of times the acquisition function is optimized while looking for the next x to sample.
+NUM_ACQ_OPTS = 20 # Number of times the acquisition function is optimized while looking for the next x to sample.
 TOGGLE_PRINT = False
 
 
@@ -75,7 +75,7 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
         ax1.set_ylim(ybounds)
         ax1.grid()
         ax2.set_xlim(xbounds)
-        ax2.set_ylim(ybounds)
+        ax2.set_ylim([0, 0.5])
         ax2.grid()
         boplot.plot_objective_function(ax=ax1)
         boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0], ax=ax1, custom_x=x)
@@ -97,9 +97,7 @@ def run_bo(acquisition, max_iter, initial_design, acq_add, init=None):
         y_ = 10000
         # Feel free to adjust the hyperparameters
         for j in range(NUM_ACQ_OPTS):
-            opt_res = minimize(acqui, np.random.uniform(xbounds[0], xbounds[1]),
-                               #bounds=xbounds,
-                               options={'maxfun': 20, 'maxiter': 20}, method="L-BFGS-B")
+            opt_res = minimize(acqui, np.random.uniform(xbounds[0], xbounds[1]), method="L-BFGS-B")
             if opt_res.fun[0] < y_:
                 x_ = opt_res.x
                 y_ = opt_res.fun[0]

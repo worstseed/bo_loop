@@ -35,7 +35,7 @@ def EI(x, model, eta, add=None, plotting=False):
     mu, sigma = model.predict(x, return_std=True)
 
     with np.errstate(divide='warn'):
-        improvement = mu - eta
+        improvement = eta - mu #mu - eta
         Z = improvement/sigma
         ei = improvement * norm.cdf(Z) + sigma * norm.pdf(Z)
         ei[sigma == 0.0] = 0.0
