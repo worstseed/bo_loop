@@ -18,7 +18,6 @@ from bo_configurations import *
 SEED = None
 TOGGLE_PRINT = False
 INIT_X_PRESENTATION = [2.5, 4, 6, 7, 8]
-NUM_ACQ_OPTS = 10 # Number of times the acquisition function is optimized while looking for the next x to sample.
 
 labels["xlabel"] = "$\lambda'$"
 labels["ylabel"] = "$c(\lambda')$"

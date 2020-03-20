@@ -55,13 +55,23 @@ def annotate_y_edge(label, xy, ax, align='right'):
     ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment=align, zorder=10)
 
 
-def get_plot_domain():
+def get_plot_domain(precision=None, custom_x=None):
     """
     Generates the default domain of configuration values to be plotted.
+    :param precision: Number of samples per unit interval [0, 1). If None (default), uses params['sample_precision'].
+    :param custom_x: (Optional) Numpy-array compatible list of x values tha tmust be included in the plot.
     :return: A NumPy-array of shape [-1, 1]
     """
+    if precision is None:
+        X_ = np.arange(xbounds[0], xbounds[1], 1 / params['sample_precision']).reshape(-1, 1)
+    else:
+        X_ = np.arange(xbounds[0], xbounds[1], 1 / precision).reshape(-1, 1)
+    if custom_x is not None:
+        custom_x = np.array(custom_x).reshape(-1, 1)
+        logging.debug("Custom x has shape {0}".format(custom_x.shape))
+        X_ = np.unique(np.vstack((X_, custom_x))).reshape(-1, 1)
 
-    return np.arange(xbounds[0], xbounds[1], 1 / params['sample_precision']).reshape(-1, 1)
+    return X_
 
 
 # Plot objective function, defined f(x)
@@ -138,13 +148,14 @@ def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, hig
     return ax if return_flag else None
 
 
-def plot_gp(model, confidence_intervals=None, custom_x=None, ax=None):
+def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False, ax=None):
     """
-    Plot a GP's mean and, if required, its confidence intervals.
-    :param model: GP
-    :param confidence_intervals: If None (default) no confidence envelope is plotted. If a list of positive values
-    [k1, k2, ...]is given, the confidence intervals k1*sigma, k2*sigma, ... are plotted.
-    :param custom_x: (Optional) Numpy-array compatible list of x values that must be included in the plot.
+    Plot a number of samples from a GP.
+    :param mu: numpy NDArray of shape [-1, nsamples] containing samples from the GP.
+    :param nsamples: Number of samples to be drawn from the GP.
+    :param custom_x: (Optional) Numpy-array compatible list of x values tha tmust be included in the plot.
+    :param precision: Set plotting precision per unit along x-axis. Default params['sample_precision'].
+    :param show_min: If True, highlights the minima of each sample. Default False.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
@@ -154,24 +165,55 @@ def plot_gp(model, confidence_intervals=None, custom_x=None, ax=None):
         fig, ax = plt.subplots(1, 1, squeeze=True)
         return_flag = True
 
-    X_ = get_plot_domain()
+    X_ = get_plot_domain(precision=precision, custom_x=custom_x)
     logging.debug("Generated x values for plotting of shape {0}".format(X_.shape))
-    if custom_x is not None:
-        custom_x = np.array(custom_x).reshape(-1, 1)
-        logging.debug("Custom x has shape {0}".format(custom_x.shape))
-        X_ = np.unique(np.vstack((X_, custom_x))).reshape(-1, 1)
 
     logging.debug("Plotting values for x of shape {0}".format(X_.shape))
-    mu, sigma = model.predict(X_, return_std=True)
-    logging.debug("Plotting GP with these values:\nSamples:\t\t{0}\nMeans:\t\t{1}\nSTDs:\t\t{2}".format(
-        X_, mu, sigma
-    ))
 
-    # Plot the mean
-    ax.plot(X_, mu, lw=2, color=colors['gp_mean'], label=labels['gp_mean'])
+    min_idx = np.argmin(mu, axis=0).reshape(-1, nsamples)
 
-    # If needed, plot the confidence envelope(s)
-    if confidence_intervals is not None:
+    xmin = []
+    mumin = []
+    for i in range(nsamples):
+        ax.plot(X_, mu[:, i], color=np.random.rand(3), label="Sample {}".format(i), alpha=0.6,)
+        xmin.append(X_[min_idx[0, i], 0])
+        mumin.append(mu[min_idx[0, i], i])
+    if show_min:
+        ax.scatter(
+            xmin,
+            mumin,
+            color=colors['highlighted_observations'],
+            marker='X',
+            label='Sample Minima',
+            zorder=11
+        )
+
+    return ax if return_flag else None
+
+
+
+def plot_gp(model, confidence_intervals=None, custom_x=None, precision=None, ax=None):
+    """
+    Plot a GP's mean and, if required, its confidence intervals.
+    :param model: GP
+    :param confidence_intervals: If None (default) no confidence envelope is plotted. If a list of positive values
+    [k1, k2, ...]is given, the confidence intervals k1*sigma, k2*sigma, ... are plotted.
+    :param custom_x: (Optional) Numpy-array compatible list of x values that must be included in the plot.
+    :param precision: Set plotting precision per unit along x-axis. Default params['sample_precision'].
+    :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
+    generated and the corresponding axes object is returned.
+    :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
+    """
+    return_flag = False
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, squeeze=True)
+        return_flag = True
+
+    X_ = get_plot_domain(precision=precision, custom_x=custom_x)
+    logging.debug("Generated x values for plotting of shape {0}".format(X_.shape))
+
+
+    def draw_confidence_envelopes(mu, sigma, confidence_intervals):
         confidence_intervals = np.array(confidence_intervals)
         confidence_intervals.sort()
 
@@ -189,6 +231,19 @@ def plot_gp(model, confidence_intervals=None, custom_x=None, ax=None):
                 facecolor=colors['gp_variance'], alpha=alpha,
                 label="{0:.2f}-Sigma Confidence Envelope".format(k)
             )
+
+
+    mu, sigma = model.predict(X_, return_std=True)
+    logging.debug("Plotting GP with these values:\nSamples:\t\t{0}\nMeans:\t\t{1}\nSTDs:\t\t{2}".format(
+        X_, mu, sigma
+    ))
+
+    # Plot the mean
+    ax.plot(X_, mu, color=colors['gp_mean'], label=labels['gp_mean'])
+
+    # If needed, plot the confidence envelope(s)
+    if confidence_intervals is not None:
+        draw_confidence_envelopes(mu, sigma, confidence_intervals)
 
     return ax if return_flag else None
 
