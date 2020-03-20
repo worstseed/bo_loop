@@ -44,9 +44,9 @@ def annotate_y_edge(label, xy, ax, align='right'):
     """
 
     if align == 'left':
-        x = ax.get_xlims[0]
+        x = ax.get_xlim[0]
     else:
-        x = ax.get_xlims[1]
+        x = ax.get_xlim[1]
 
     textxy = ax.transData.transform([x, xy[1]])
     textxy = ax.transData.inverted().transform((textxy[0], textxy[1] - 6 * rcParams["font.size"]))
@@ -275,7 +275,7 @@ def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, a
     X_, acquisition_fun = list(zip(*zipped))
 
     ax.plot(X_, acquisition_fun, color=colors['acq_fun'], label=labels[acquisition])
-    ax.fill_between(X_, acquisition_fun, ax.get_ylims[0], facecolor=colors['acq_func_fill'])
+    ax.fill_between(X_, acquisition_fun, ax.get_ylim[0], facecolor=colors['acq_func_fill'])
 
     return ax if return_flag else None
 
@@ -304,7 +304,7 @@ def highlight_configuration(x, label=None, lloc='bottom', ax=None, **kwargs):
     # Assume we will recieve x as a view on a numpy array
     x = x.reshape(-1)[0]
 
-    ax.vlines(x, ymin=ax.get_ylims[0], ymax=ax.get_ylims[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
+    ax.vlines(x, ymin=ax.get_ylim[0], ymax=ax.get_ylim[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
     xlabel = "{0:.2f}".format(x) if label is None else label
 
     if lloc == 'top':
@@ -345,7 +345,7 @@ def highlight_output(y, label=None, lloc='left', ax=None, **kwargs):
     # Assume we will recieve y as a view on a numpy array
     y = y.reshape(-1)[0]
 
-    ax.hlines(y, ymin=ax.get_xlims[0], ymax=ax.get_xlims[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
+    ax.hlines(y, ymin=ax.get_xlim[0], ymax=ax.get_xlim[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
 
     if lloc == 'right':
         ax.tick_params(
