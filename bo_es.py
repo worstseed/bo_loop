@@ -33,9 +33,9 @@ def initialize_dataset(initial_design, init=None):
 
     # sample initial query points
     if initial_design == 'uniform':
-        x = np.linspace(xbounds[0], xbounds[1], init).reshape(-1, 1).tolist()
+        x = np.linspace(bounds['x'][0], bounds['x'][1], init).reshape(-1, 1).tolist()
     elif initial_design == 'random':
-        x = np.random.uniform(xbounds[0], xbounds[1], init).reshape(-1, 1).tolist()
+        x = np.random.uniform(bounds['x'][0], bounds['x'][1], init).reshape(-1, 1).tolist()
     elif initial_design == 'presentation':
         x = np.array(INIT_X_PRESENTATION).reshape(-1, 1).tolist()
 
@@ -60,9 +60,9 @@ def get_mu_star(model):
     return coords[idx, :]
 
 
-def visualize_look_ahead(initial_design, init=None):
+def visualize_es(initial_design, init=None):
     """
-    Visualize one-step of look-ahead.
+    Visualize one-step of ES.
     :param initial_design: Method for initializing the GP, choice between 'uniform', 'random', and 'presentation'
     :param init: Number of datapoints to initialize GP with.
     :return: None
@@ -70,7 +70,7 @@ def visualize_look_ahead(initial_design, init=None):
 
     boplot.set_rcparams(**{'figure.figsize': (21, 9)})
 
-    logging.debug("Visualizing Look-Ahead with initial design {} and init {}".format(initial_design, init))
+    logging.debug("Visualizing ES with initial design {} and init {}".format(initial_design, init))
     # Initialize dummy dataset
     x, y = initialize_dataset(initial_design=initial_design, init=init)
     logging.debug("Initialized dataset with:\nsamples {0}\nObservations {1}".format(x, y))
@@ -90,9 +90,9 @@ def visualize_look_ahead(initial_design, init=None):
     # 5. Mark the next sample based on MLE of posterior
 
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
-    ax1.set_xlim(xbounds)
-    ax1.set_ylim(gp_ybounds)
-    ax2.set_xlim(xbounds)
+    ax1.set_xlim(bounds['x'])
+    ax1.set_ylim(bounds['gp_y'])
+    ax2.set_xlim(bounds['x'])
     ax2.set_ylim((0, 1.0))
     ax1.grid()
     ax2.grid()
@@ -103,7 +103,7 @@ def visualize_look_ahead(initial_design, init=None):
 
     data_h1 = np.copy(X_)
     nbins = X_.shape[0]+1
-    bin_range = (xbounds[0] - 1 / histogram_precision, xbounds[1] + 1 / histogram_precision)
+    bin_range = (bounds['x'][0] - 1 / histogram_precision, bounds['x'][1] + 1 / histogram_precision)
 
     ax2.hist(
         data_h1, bins=nbins,
@@ -129,9 +129,9 @@ def visualize_look_ahead(initial_design, init=None):
     # Draw one sample from gp
 
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
-    ax1.set_xlim(xbounds)
-    ax1.set_ylim(gp_ybounds)
-    ax2.set_xlim(xbounds)
+    ax1.set_xlim(bounds['x'])
+    ax1.set_ylim(bounds['gp_y'])
+    ax2.set_xlim(bounds['x'])
     ax2.set_ylim((0, 1.0))
     ax1.grid()
     ax2.grid()
@@ -177,9 +177,9 @@ def visualize_look_ahead(initial_design, init=None):
 
     # Draw 3 samples from GP
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
-    ax1.set_xlim(xbounds)
-    ax1.set_ylim(gp_ybounds)
-    ax2.set_xlim(xbounds)
+    ax1.set_xlim(bounds['x'])
+    ax1.set_ylim(bounds['gp_y'])
+    ax2.set_xlim(bounds['x'])
     ax2.set_ylim((0, 1.0))
     ax1.grid()
     ax2.grid()
@@ -227,9 +227,9 @@ def visualize_look_ahead(initial_design, init=None):
     # Draw 50 samples from GP
 
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
-    ax1.set_xlim(xbounds)
-    ax1.set_ylim(gp_ybounds)
-    ax2.set_xlim(xbounds)
+    ax1.set_xlim(bounds['x'])
+    ax1.set_ylim(bounds['gp_y'])
+    ax2.set_xlim(bounds['x'])
     ax2.set_ylim((0, 1.0))
     ax1.grid()
     ax2.grid()
@@ -278,7 +278,7 @@ def visualize_look_ahead(initial_design, init=None):
 
 
 def main(init_size, initial_design):
-        visualize_look_ahead(
+        visualize_es(
             init=init_size,
             initial_design=initial_design,
         )
