@@ -4,6 +4,9 @@ import logging
 
 from bo_configurations import *
 from matplotlib import rcParams
+from matplotlib.patches import Rectangle
+
+from scipy.stats import norm
 
 rcParams["font.size"] = 32
 rcParams["axes.linewidth"] = 3
@@ -24,7 +27,7 @@ def enable_printing():
     rcParams["savefig.format"] = 'pdf'
 
 def enable_onscreen_display():
-    rcParams["figure.figsize"] = (6.4, 4.8)
+    rcParams["figure.figsize"] = (16, 9)
     rcParams["figure.dpi"] = 100.0
 
 
@@ -35,24 +38,48 @@ def set_rcparams(**kwargs):
 
 def annotate_y_edge(label, xy, ax, align='right'):
     """
-    Place an annotation that hugs the left or right margin.
+    Place an annotation beneath a horizontal bar, between a given point and either of the left or right edges.
     :param label: Text to annotate with.
-    :param y: xy-coordinates
+    :param xy: Given xy-coordinates.
     :param ax: matplotlib.Axes.axes object given by the user
-    :param align: 'left' or 'right' (default) edge to hug.
+    :param align: 'left' or 'right' (default) edge to use.
     :return: None.
     """
 
     if align == 'left':
-        x = ax.get_ylim()[0]
+        x = xy[0] - (xy[0] - ax.get_xlim()[0]) / 2
     else:
-        x = ax.get_ylim()[1]
+        x = xy[0] + (ax.get_xlim()[1] - xy[0]) / 2
 
-    textxy = ax.transData.transform([x, xy[1]])
-    textxy = ax.transData.inverted().transform((textxy[0], textxy[1] - 6 * rcParams["font.size"]))
+    # textxy = ax.transData.transform([x, xy[1]])
+    # textxy = ax.transData.inverted().transform((textxy[0], textxy[1] - 2 * rcParams["font.size"]))
+    textxy = (x, xy[1] - 0.5)
     # logging.info("Placing text at {}".format(textxy))
 
-    ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment=align, zorder=10)
+    ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment='center', zorder=10)
+
+
+def annotate_x_edge(label, xy, ax, align='right'):
+    """
+    Place an annotation next to a vertical bar, between a given point and either of the bottom or top edges.
+    :param label: Text to annotate with.
+    :param xy: Given xy-coordinates.
+    :param ax: matplotlib.Axes.axes object given by the user
+    :param align: 'top' or 'bottom' (default) edge to use.
+    :return: None.
+    """
+
+    if align == 'bottom':
+        y = xy[1] - 1.5 * (xy[1] - ax.get_ylim()[0]) / 2
+    else:
+        y = xy[1] + 1.5 * (ax.get_ylim()[1] - xy[1]) / 2
+
+    # textxy = ax.transData.transform([x, xy[1]])
+    # textxy = ax.transData.inverted().transform((textxy[0], textxy[1] - 2 * rcParams["font.size"]))
+    textxy = (xy[0] - 0.1, y)
+    # logging.info("Placing text at {}".format(textxy))
+
+    ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment='right', zorder=10)
 
 
 def get_plot_domain(precision=None, custom_x=None):
@@ -303,6 +330,7 @@ def highlight_configuration(x, label=None, lloc='bottom', ax=None, **kwargs):
 
     # Assume we will recieve x as a view on a numpy array
     x = x.reshape(-1)[0]
+    logging.info("Highlighting configuration at {} with label {}".format(x, label))
 
     ax.vlines(x, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
     xlabel = "{0:.2f}".format(x) if label is None else label
@@ -345,7 +373,12 @@ def highlight_output(y, label=None, lloc='left', ax=None, **kwargs):
     # Assume we will recieve y as a view on a numpy array
     y = y.reshape(-1)[0]
 
-    ax.vlines(y, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
+    ax.hlines(
+        y,
+        xmin=ax.get_xlim()[0], xmax=ax.get_xlim()[1],
+        colors=colors['minor_tick_highlight'], linestyles='dashed',
+        label='Next Sample'
+    )
 
     if lloc == 'right':
         ax.tick_params(
@@ -366,3 +399,51 @@ def highlight_output(y, label=None, lloc='left', ax=None, **kwargs):
     ax.set_yticklabels([ylabel], label_props, minor=True)
 
     return ax if return_flag else None
+
+def darken_graph(y, ax):
+    """
+    Darken the graph above a certain y-value.
+    :param y: Boundary between light and dark.
+    :param ax: The matplotlib.axes.Axes object to work on.
+    :return: None
+    """
+
+    recto = (ax.get_xlim()[0], y)
+    rectwidth = ax.get_xlim()[1] - ax.get_xlim()[0]
+    rectheight = ax.get_ylim()[1] - y
+    rect = Rectangle(recto, rectwidth, rectheight, fill=True, alpha=0.75, color='black', zorder=8)
+    ax.add_patch(rect)
+    return
+
+
+def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, label=r"\lambda'", mu=0.0, sigma=1.0, step=0.01, xlims=[-10.0, 10.0], yscale=1.0):
+    # Generate a normal pdf centered at xtest
+    ytest_mean, ytest_cov = gp.predict([[xtest]], return_cov=True)
+    mu = ytest_mean[0]
+    sigma = ytest_cov[0, 0]
+    logging.info("Shapes:\nytext_mean:{}\nytest_conv:{}\nmu:{}\sigma:{}".format(
+        ytest_mean.shape, ytest_cov.shape, mu.shape, sigma.shape
+    ))
+    # print("ytest mean:{}, cov:{}".format(ytest_mean, ytest_cov))
+
+    norm_x = np.arange(xlims[0], xlims[1], step)
+    norm_y = norm.pdf(norm_x, mu, sigma) * yscale
+
+    #norm_x, norm_y = get_bell_curve_xy(mu=mu, sigma=sigma, step=step, xlims=xlims, yscale=yscale)
+
+    # Rotate by -pi/2 to obtain a vertical curve
+    vcurve_x = norm_y + xtest
+    vcurve_y = -norm_x + mu
+
+    ax.plot(xtest, ytest_mean, color='grey', marker='o', zorder=10)
+    ax.vlines(xtest, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors='black', linestyles='dashed', zorder=9)
+    ax.plot(vcurve_x, vcurve_y, color='black', zorder=9)
+    fill_args = np.where(vcurve_y < incumbenty)
+    ax.fill_betweenx(vcurve_y[fill_args], xtest, vcurve_x[fill_args], alpha=0.8, facecolor='darkgreen', zorder=10)
+    # ax.annotate(s=r'$({0}, \mu({0}))$'.format(label), xy=(xtest, ytest_mean), xytext=(xtest - 0.2, ytest_mean - 1.0),
+    #             arrowprops={'arrowstyle': 'fancy'},
+    #              weight='heavy', zorder=10)
+    # ax.annotate(s=r'$PI({})$'.format(label), xy=(xtest + 0.1, ytest_mean), xytext=(xtest + 0.3, ytest_mean - 1.0),
+    #              arrowprops={'arrowstyle': 'fancy'},
+    #              weight='heavy', fontsize='x-large', color='darkgreen', zorder=10)
+    return
