@@ -104,7 +104,7 @@ def mark_current_incumbent(x, y, invert_y=False, ax=None):
 
     if invert_y:
         y = -y
-    ax.scatter(x, y, color=colors['current_incumbent'], marker='v', label=labels['incumbent'], zorder=10)
+    ax.scatter(x, y, color=colors['current_incumbent'], marker='v', label=labels['incumbent'], zorder=12)
 
 
 def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=None):
