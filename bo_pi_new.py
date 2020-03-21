@@ -115,7 +115,7 @@ def visualize_pi(initial_design, init=None):
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_1.pdf", dpi='figure')
+        plt.savefig("pi_1.pdf")
     else:
         plt.show()
     # -------------------------------------------
@@ -137,7 +137,7 @@ def visualize_pi(initial_design, init=None):
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_2.pdf", dpi='figure')
+        plt.savefig("pi_2.pdf")
     else:
         plt.show()
     # -------------------------------------------
@@ -162,7 +162,7 @@ def visualize_pi(initial_design, init=None):
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_3.pdf", dpi='figure')
+        plt.savefig("pi_3.pdf")
     else:
         plt.show()
     # -------------------------------------------
@@ -189,7 +189,7 @@ def visualize_pi(initial_design, init=None):
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_4.pdf", dpi='figure')
+        plt.savefig("pi_4.pdf")
     else:
         plt.show()
     # -------------------------------------------
@@ -221,7 +221,7 @@ def visualize_pi(initial_design, init=None):
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_5.pdf", dpi='figure')
+        plt.savefig("pi_5.pdf")
     else:
         plt.show()
     # -------------------------------------------
