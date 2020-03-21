@@ -31,6 +31,8 @@ def initialize_dataset(initial_design, init=None):
     :return:
     """
 
+    x = None
+
     # sample initial query points
     if initial_design == 'uniform':
         x = np.linspace(bounds['x'][0], bounds['x'][1], init).reshape(-1, 1).tolist()

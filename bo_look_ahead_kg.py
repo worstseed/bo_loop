@@ -30,6 +30,8 @@ def initialize_dataset(initial_design, init=None):
     :return:
     """
 
+    x = None
+
     # sample initial query points
     if initial_design == 'uniform':
         x = np.linspace(bounds["x"][0], bounds["x"][1], init).reshape(-1, 1).tolist()
@@ -289,7 +291,7 @@ def visualize_look_ahead(initial_design, init=None):
     plt.tight_layout()
 
     if TOGGLE_PRINT:
-        plt.savefig("look_ahead_2a.pdf")
+        plt.savefig("look_ahead_3a.pdf")
     else:
         plt.show()
 
@@ -303,7 +305,7 @@ def visualize_look_ahead(initial_design, init=None):
     plt.tight_layout()
 
     if TOGGLE_PRINT:
-        plt.savefig("look_ahead_2b.pdf")
+        plt.savefig("look_ahead_3b.pdf")
     else:
         plt.show()
 
@@ -317,7 +319,7 @@ def visualize_look_ahead(initial_design, init=None):
     plt.tight_layout()
 
     if TOGGLE_PRINT:
-        plt.savefig("look_ahead_2c.pdf")
+        plt.savefig("look_ahead_3c.pdf")
     else:
         plt.show()
 
