@@ -29,7 +29,7 @@ labels = dict({
     EI: 'Expected Improvement',
     'xlabel': '$\lambda$',
     'gp_ylabel': 'c($\lambda$)',
-    'acq_ylabel': '$u(\lambda)$',
+    'acq_ylabel': "$u^{(t)}(\lambda')$",
     'gp_mean': 'GP Mean',
     'incumbent': 'Current Incumbent'
 })

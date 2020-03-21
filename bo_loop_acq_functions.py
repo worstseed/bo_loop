@@ -42,20 +42,17 @@ def EI(x, model, eta, add=None, plotting=False):
     # return ei
     return -ei if plotting else ei
 
-def LCB(x, model, eta, add, plotting=False):
+def LCB(x, model, eta, add):
     """
-    Upper Confidence Bound
+    Lower Confidence Bound, returns a value for the minimizer
     :param x: point to determine the acquisition value
     :param model: GP to predict target function value
     :param eta: best so far seen value
     :param add: additional parameters necessary for the function (kappa)
-    :param plotting: flag to fulfill fmin interface / show plots with functions to be maximized.
     :return: positive LCB value for plotting, negative for the optimizer.
     """
     x = np.array([x]).reshape([-1, 1])
     mu, sigma = model.predict(x, return_std=True)
 
-    kappa = np.sqrt(add)
-    lcb = mu - kappa * sigma
-    # return -lcb if plotting else lcb
+    lcb = mu - add * sigma
     return lcb

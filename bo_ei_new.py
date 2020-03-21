@@ -81,7 +81,7 @@ def visualize_ei(initial_design, init=None):
 
     # boplot.set_rcparams(**{'legend.loc': 'lower left'})
 
-    logging.debug("Visualizing PI with initial design {} and init {}".format(initial_design, init))
+    logging.debug("Visualizing EI with initial design {} and init {}".format(initial_design, init))
     # Initialize dummy dataset
     x, y = initialize_dataset(initial_design=initial_design, init=init)
     ymin_arg = np.argmin(y)

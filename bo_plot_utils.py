@@ -219,12 +219,13 @@ def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False,
 
 
 
-def plot_gp(model, confidence_intervals=None, custom_x=None, precision=None, ax=None):
+def plot_gp(model, confidence_intervals=None, type='both', custom_x=None, precision=None, ax=None):
     """
     Plot a GP's mean and, if required, its confidence intervals.
     :param model: GP
     :param confidence_intervals: If None (default) no confidence envelope is plotted. If a list of positive values
     [k1, k2, ...]is given, the confidence intervals k1*sigma, k2*sigma, ... are plotted.
+    :param type: 'upper'|'lower'|'both' (default) - Type of confidence bound to plot.
     :param custom_x: (Optional) Numpy-array compatible list of x values that must be included in the plot.
     :param precision: Set plotting precision per unit along x-axis. Default params['sample_precision'].
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
@@ -252,9 +253,16 @@ def plot_gp(model, confidence_intervals=None, custom_x=None, precision=None, ax=
             endpoint=False
         )
 
+        get_envelope = {
+            'upper': lambda mu, k, sigma: (mu, mu + k * sigma),
+            'lower': lambda mu, k, sigma: (mu - k * sigma, mu),
+            'both': lambda mu, k, sigma: (mu - k * sigma, mu + k * sigma),
+        }
+
         for k, alpha in zip(confidence_intervals, alphas):
+            lower, upper = get_envelope[type](mu, k, sigma)
             ax.fill_between(
-                X_[:, 0], mu - k*sigma, mu + k*sigma,
+                X_[:, 0], lower, upper,
                 facecolor=colors['gp_variance'], alpha=alpha,
                 label="{0:.2f}-Sigma Confidence Envelope".format(k)
             )
@@ -276,14 +284,14 @@ def plot_gp(model, confidence_intervals=None, custom_x=None, precision=None, ax=
 
 
 # Plot acquisition function
-def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, ax=None):
+def plot_acquisition_function(acquisition, eta, model, add=None, ax=None):
     """
-    Generate a plot to visualize the given acquisition function for the model.
+    Generate a plot to visualize the given acquisition function for the model. It is assumed that the acquisition
+    function will always return a value for the minimizer, and will hence be negated before plotting.
     :param acquisition: Acquisition function handle, from bo_configurations.acquisition_functions.
     :param eta: Best observed value thus far.
     :param model: GP to be used as a model.
     :param add: Additional parameters passed to the acquisition function.
-    :param invert: When True (default), it is assumed that the acquisition function needs to be inverted for plotting.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
@@ -291,12 +299,19 @@ def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, a
     return_flag = False
     if ax is None:
         fig, ax = plt.subplots(1, 1, squeeze=True)
+
+        ax.set_xlim(bounds["x"])
+        ax.set_ylim(bounds["acq_y"])
+        ax.grid()
+        ax.set_xlabel(labels['xlabel'])
+        ax.set_ylabel(labels['acq_ylabel'])
+        ax.set_title(r"Visualization of {}".format(labels[acquisition]), loc='left')
+
         return_flag = True
 
     X_ = get_plot_domain().reshape(-1)
     acquisition_fun = acquisition_functions[acquisition](X_, model=model, eta=eta, add=add)
-    if invert:
-        acquisition_fun = -acquisition_fun
+    acquisition_fun = -acquisition_fun
     zipped = list(zip(X_, acquisition_fun))
     zipped.sort(key = lambda t: t[0])
     X_, acquisition_fun = list(zip(*zipped))
