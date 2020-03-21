@@ -23,7 +23,7 @@ bounds["gp_y"] = (-5, 5)
 # boplot.set_rcparams(**{"legend.loc": "lower left"})
 
 labels["xlabel"] = "$\lambda'$"
-labels["ylabel"] = "$c(\lambda)$"
+labels["gp_ylabel"] = "$c(\lambda')$"
 
 def initialize_dataset(initial_design, init=None):
     """
@@ -178,7 +178,20 @@ def visualize_pi(initial_design, init=None):
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
     boplot.darken_graph(y=ymin, ax=ax)
-    boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
+
+    vcurve_x, vcurve_y, mu = boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
+
+    ann_x = candidate + 0.5 * (np.max(vcurve_x) - candidate) / 2
+    ann_y = mu
+
+    arrow_x = ann_x
+    arrow_y = ann_y - 3.0
+
+    label = "{:.2f}".format(candidate)
+
+    ax.annotate(s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+                arrowprops={'arrowstyle': 'fancy'},
+                weight='heavy', fontsize='x-large', color='darkgreen', zorder=15)
 
     ax.legend().set_zorder(20)
     ax.set_xlabel(labels['xlabel'])

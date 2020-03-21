@@ -419,11 +419,8 @@ def darken_graph(y, ax):
     return
 
 
-def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, label=None, mu=0.0, sigma=1.0, step=0.01,
+def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, step=0.01,
                          xlim=2.0, xscale=1.0, yscale=1.0):
-
-    if label is None:
-        label = "{:.2f}".format(xtest)
 
     # Generate a normal pdf centered at xtest
     ytest_mean, ytest_cov = gp.predict([[xtest]], return_cov=True)
@@ -451,7 +448,7 @@ def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, label=None, mu=0.0, sigm
     # vcurve_x = norm_x + xtest
     # vcurve_y = norm_y + mu
 
-    ax.plot(xtest, mu, color='red', marker='o', zorder=14)
+    ax.plot(xtest, mu, color='red', marker='o', markersize=20, zorder=14)
     ax.vlines(xtest, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors='black', linestyles='dashed', zorder=9)
     ax.plot(vcurve_x, vcurve_y, color='black', zorder=9)
     fill_args = np.where(vcurve_y < incumbenty)
@@ -467,13 +464,4 @@ def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, label=None, mu=0.0, sigm
     #             arrowprops={'arrowstyle': 'fancy'},
     #              weight='heavy', zorder=15)
 
-    ann_x = xtest + 0.5 * (np.max(vcurve_x) - xtest) / 2
-    ann_y = mu
-
-    arrow_x = ann_x
-    arrow_y = ann_y - 3.0
-
-    ax.annotate(s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
-                 arrowprops={'arrowstyle': 'fancy'},
-                 weight='heavy', fontsize='x-large', color='darkgreen', zorder=15)
-    return
+    return (vcurve_x, vcurve_y, mu)
