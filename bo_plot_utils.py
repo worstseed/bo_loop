@@ -59,20 +59,21 @@ def annotate_y_edge(label, xy, ax, align='right'):
     ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment='center', zorder=10)
 
 
-def annotate_x_edge(label, xy, ax, align='right'):
+def annotate_x_edge(label, xy, ax, align='bottom', offset_param=1.5):
     """
     Place an annotation next to a vertical bar, between a given point and either of the bottom or top edges.
     :param label: Text to annotate with.
     :param xy: Given xy-coordinates.
     :param ax: matplotlib.Axes.axes object given by the user
     :param align: 'top' or 'bottom' (default) edge to use.
+    :param offset_param: Controls offset of label from xy.
     :return: None.
     """
 
     if align == 'bottom':
-        y = xy[1] - 1.5 * (xy[1] - ax.get_ylim()[0]) / 2
+        y = xy[1] - offset_param * (xy[1] - ax.get_ylim()[0]) / 2
     else:
-        y = xy[1] + 1.5 * (ax.get_ylim()[1] - xy[1]) / 2
+        y = xy[1] + offset_param * (ax.get_ylim()[1] - xy[1]) / 2
 
     # textxy = ax.transData.transform([x, xy[1]])
     # textxy = ax.transData.inverted().transform((textxy[0], textxy[1] - 2 * rcParams["font.size"]))

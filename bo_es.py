@@ -138,7 +138,9 @@ def visualize_es(initial_design, init=None):
     # 1. Show GP fit on initial dataset, 0 samples, histogram
     # -------------------------------------------
 
-    ax2_title = r'Frequency of $\lambda=\hat{\lambda}^*$'
+    ax2_title = r'$p_{min}=P(\lambda=\lambda^*)$'
+
+    bounds['acq_y'] = (0.0, 1.0)
 
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
     ax1.set_xlim(bounds['x'])
@@ -155,14 +157,21 @@ def visualize_es(initial_design, init=None):
     nsamples = 0
     draw_samples(nsamples=nsamples, ax1=ax1, ax2=ax2, show_min=True)
 
+    # Plot uniform prior for p_min
+    xplot = boplot.get_plot_domain()
+    ylims = ax2.get_ylim()
+    xlims = ax2.get_xlim()
+    yupper = [(ylims[1] - ylims[0]) / (xlims[1] - xlims[0])] * xplot.shape[0]
+    ax2.plot(xplot[:, 0], yupper, color='green', linewidth=2.0)
+    ax2.fill_between(xplot[:, 0], ylims[0], yupper, color='lightgreen')
+
     ax1.legend().set_zorder(20)
     ax1.set_xlabel(labels['xlabel'])
     ax1.set_ylabel(labels['gp_ylabel'])
     ax1.set_title(r"Visualization of $\mathcal{G}^t$", loc='left')
 
     ax2.set_xlabel(labels['xlabel'])
-    # ax2.set_ylabel(r'$p_{min}$')
-    ax2.set_ylabel(r'Frequency')
+    ax2.set_ylabel(r'$p_{min}$')
     ax2.set_title(ax2_title, loc='left')
 
     plt.tight_layout()
@@ -174,6 +183,9 @@ def visualize_es(initial_design, init=None):
 
     # 2. Show GP fit on initial dataset, 1 sample, histogram
     # -------------------------------------------
+
+    bounds['acq_y'] = (0.0, 5.0)
+    ax2_title = r'Frequency of $\lambda=\hat{\lambda}^*$'
 
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
     ax1.set_xlim(bounds['x'])
@@ -208,6 +220,9 @@ def visualize_es(initial_design, init=None):
 
     # 3. Show GP fit on initial dataset, 10 samples, histogram
     # -------------------------------------------
+
+    bounds['acq_y'] = (0.0, 10.0)
+    ax2_title = r'Frequency of $\lambda=\hat{\lambda}^*$'
 
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
     ax1.set_xlim(bounds['x'])
@@ -245,6 +260,8 @@ def visualize_es(initial_design, init=None):
     # -------------------------------------------
 
     bounds["acq_y"] = (0.0, 20.0)
+    ax2_title = r'Frequency of $\lambda=\hat{\lambda}^*$'
+
     fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
     ax1.set_xlim(bounds['x'])
     ax1.set_ylim(bounds['gp_y'])
@@ -353,9 +370,11 @@ def visualize_es(initial_design, init=None):
 
     idx_umax = np.argmax(ys)
     boplot.highlight_configuration(x=xplot[idx_umax], label='', ax=ax1, disable_ticks=True)
-    boplot.annotate_x_edge(label=r'$\lambda^{(t)}$', xy=(xplot[idx_umax], ys[idx_umax]), ax=ax1)
+    boplot.annotate_x_edge(label=r'$\lambda^{(t)}$', xy=(xplot[idx_umax], ax1.get_ylim()[0]),
+                           ax=ax1, align='top', offset_param= 1.5)
     boplot.highlight_configuration(x=xplot[idx_umax], label='', ax=ax2, disable_ticks=True)
-    boplot.annotate_x_edge(label=r'$\lambda^{(t)}$', xy=(xplot[idx_umax], ys[idx_umax]), ax=ax2)
+    boplot.annotate_x_edge(label=r'$\lambda^{(t)}$', xy=(xplot[idx_umax], ys[idx_umax]),
+                           ax=ax2, align='top', offset_param=1.0)
 
     ax2.plot(xplot, ys, color='green', lw=2.)
     ax2.fill_between(xplot[:, 0], ax2.get_ylim()[0], ys, color='lightgreen')
