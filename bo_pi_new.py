@@ -190,7 +190,7 @@ def visualize_pi(initial_design, init=None):
     label = "{:.2f}".format(candidate)
 
     ax.annotate(
-        s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+        s=r'$PI^{(t)}(%s)$' % label, xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
         arrowprops={'arrowstyle': 'fancy'},
         weight='heavy', color='darkgreen', zorder=15
     )
@@ -236,7 +236,7 @@ def visualize_pi(initial_design, init=None):
     label = "{:.2f}".format(candidate)
 
     ax.annotate(
-        s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+        s=r'$PI^{(t)}(%s)$' % label, xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
         arrowprops={'arrowstyle': 'fancy'},
         weight='heavy', color='darkgreen', zorder=15
     )
@@ -255,7 +255,7 @@ def visualize_pi(initial_design, init=None):
 
     label = "{:.2f}".format(candidate)
 
-    ax.annotate(s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+    ax.annotate(s=r'$PI^{(t)}(%s)$' % label, xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
                 arrowprops={'arrowstyle': 'fancy'},
                 weight='heavy', color='darkgreen', zorder=15)
 

@@ -180,6 +180,10 @@ def visualize_ei(initial_design, init=None):
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
     boplot.darken_graph(y=ymin, ax=ax)
 
+    ax.set_xlabel(labels['xlabel'])
+    ax.set_ylabel(labels['gp_ylabel'])
+    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+
     plt.tight_layout()
     if TOGGLE_PRINT:
         plt.savefig("ei_4.pdf")
@@ -247,7 +251,7 @@ def visualize_ei(initial_design, init=None):
                  arrowprops={'arrowstyle': '<|-|>',})
 
     textx = xmid + (ax.get_xlim()[1] - ax.get_xlim()[0]) / 40
-    ax.text(textx, (ymin + cost) / 2, r'$I(x)$')
+    ax.text(textx, (ymin + cost) / 2, r'$I^{(t)}(\lambda)$', weight='heavy')
 
     ax.legend().remove()
 
@@ -286,9 +290,12 @@ def visualize_ei(initial_design, init=None):
                  arrowprops={'arrowstyle': '<|-|>',})
 
     textx = xmid + (ax.get_xlim()[1] - ax.get_xlim()[0]) / 40
-    ax.text(textx, (ymin + cost) / 2, r'$I(x)$')
+    ax.text(textx, (ymin + cost) / 2, r'$I^{(t)}(\lambda)$', weight='heavy')
 
-    vcurve_x, vcurve_y, mu = boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
+    vcurve_x, vcurve_y, mu = boplot.draw_vertical_normal(
+        gp=gp, incumbenty=ymin, ax=ax, xtest=candidate,
+        xscale=2.0, yscale=1.0
+    )
 
     ann_x = candidate + 0.3 * (np.max(vcurve_x) - candidate) / 2
     ann_y = ymin - (mu - ymin) / 2
@@ -300,9 +307,9 @@ def visualize_ei(initial_design, init=None):
     label = '\lambda'
 
     ax.annotate(
-        s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+        s=r'$PI^{(t)}(%s)$' % label, xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
         arrowprops={'arrowstyle': 'fancy'},
-        color='darkgreen', zorder=15
+        weight='heavy', color='darkgreen', zorder=15
     )
 
     ax.legend().remove()
