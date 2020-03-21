@@ -53,7 +53,7 @@ def annotate_y_edge(label, xy, ax, align='right'):
 
     # textxy = ax.transData.transform([x, xy[1]])
     # textxy = ax.transData.inverted().transform((textxy[0], textxy[1] - 2 * rcParams["font.size"]))
-    textxy = (x, xy[1] - 0.5)
+    textxy = (x, xy[1] - (ax.get_ylim()[1] - ax.get_ylim()[0]) / 10)
     # logging.info("Placing text at {}".format(textxy))
 
     ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment='center', zorder=10)

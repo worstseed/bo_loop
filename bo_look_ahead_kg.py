@@ -137,7 +137,7 @@ def visualize_look_ahead(initial_design, init=None):
     draw_figure_1(ax)
     boplot.highlight_configuration(mu_star_t_xy[0], lloc='bottom', ax=ax)
     boplot.highlight_output(mu_star_t_xy[1], label='', lloc='right', ax=ax, fontsize=30)
-    boplot.annotate_y_edge(label='${(\mu^*)}^{(t)}$', xy=mu_star_t_xy, align='right', ax=ax)
+    boplot.annotate_y_edge(label=r'${(\mu^*)}^{(t)}$', xy=mu_star_t_xy, align='right', ax=ax)
     ax.legend().remove()
 
     plt.tight_layout()
@@ -364,7 +364,7 @@ if __name__ == '__main__':
                                 help='Size of the initial database',
                                 type=int)
     cmdline_parser.add_argument('-i', '--initial_design',
-                                default="random",
+                                default="presentation",
                                 choices=['random', 'uniform', 'presentation'],
                                 help='How to choose first observations.')
     cmdline_parser.add_argument('-v', '--verbose',

@@ -243,7 +243,7 @@ if __name__ == '__main__':
                                 help='Size of the initial database',
                                 type=int)
     cmdline_parser.add_argument('-i', '--initial_design',
-                                default="random",
+                                default="presentation",
                                 choices=['random', 'uniform', 'presentation'],
                                 help='How to choose first observations.')
     cmdline_parser.add_argument('-v', '--verbose',
