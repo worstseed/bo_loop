@@ -411,12 +411,20 @@ def darken_graph(y, ax):
     recto = (ax.get_xlim()[0], y)
     rectwidth = ax.get_xlim()[1] - ax.get_xlim()[0]
     rectheight = ax.get_ylim()[1] - y
-    rect = Rectangle(recto, rectwidth, rectheight, fill=True, alpha=0.75, color='white', zorder=8)
+    rect = Rectangle(
+        recto, rectwidth, rectheight,
+        fill=True, alpha=0.75, facecolor='white', zorder=8, linewidth=rcParams['lines.linewidth'], edgecolor='grey'
+    )
     ax.add_patch(rect)
     return
 
 
-def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, label=r"\lambda'", mu=0.0, sigma=1.0, step=0.01, xlims=[-10.0, 10.0], yscale=1.0):
+def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, label=None, mu=0.0, sigma=1.0, step=0.01,
+                         xlim=2.0, xscale=1.0, yscale=1.0):
+
+    if label is None:
+        label = "{:.2f}".format(xtest)
+
     # Generate a normal pdf centered at xtest
     ytest_mean, ytest_cov = gp.predict([[xtest]], return_cov=True)
     mu = ytest_mean[0]
@@ -424,26 +432,48 @@ def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, label=r"\lambda'", mu=0.
     logging.info("Shapes:\nytext_mean:{}\nytest_conv:{}\nmu:{}\sigma:{}".format(
         ytest_mean.shape, ytest_cov.shape, mu.shape, sigma.shape
     ))
+    logging.info("Generating N({},{})".format(mu, sigma))
     # print("ytest mean:{}, cov:{}".format(ytest_mean, ytest_cov))
 
-    norm_x = np.arange(xlims[0], xlims[1], step)
+    # Generate a Normal distribution centered around it's mean.
+    norm_x = np.arange(mu - xlim, mu + xlim + step, step)
     norm_y = norm.pdf(norm_x, mu, sigma) * yscale
+    logging.info("Min of normal_y is: {}\nMean of normal_y is:{}".format(np.min(norm_y), np.mean(norm_y)))
 
-    #norm_x, norm_y = get_bell_curve_xy(mu=mu, sigma=sigma, step=step, xlims=xlims, yscale=yscale)
+    # Shift the normal to x=0 and stretch it along x
+    norm_x = (norm_x - mu) * xscale
 
-    # Rotate by -pi/2 to obtain a vertical curve
+    # Rotate by -pi/2 to obtain a vertical curve and then shift the center to the sample's location on the GP Mean
     vcurve_x = norm_y + xtest
     vcurve_y = -norm_x + mu
 
-    ax.plot(xtest, ytest_mean, color='grey', marker='o', zorder=10)
+    # Test the curve by centering it without rotation
+    # vcurve_x = norm_x + xtest
+    # vcurve_y = norm_y + mu
+
+    ax.plot(xtest, mu, color='red', marker='o', zorder=14)
     ax.vlines(xtest, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors='black', linestyles='dashed', zorder=9)
     ax.plot(vcurve_x, vcurve_y, color='black', zorder=9)
     fill_args = np.where(vcurve_y < incumbenty)
-    ax.fill_betweenx(vcurve_y[fill_args], xtest, vcurve_x[fill_args], alpha=0.8, facecolor='darkgreen', zorder=10)
-    # ax.annotate(s=r'$({0}, \mu({0}))$'.format(label), xy=(xtest, ytest_mean), xytext=(xtest - 0.2, ytest_mean - 1.0),
+    ax.fill_betweenx(vcurve_y[fill_args], xtest, vcurve_x[fill_args], alpha=1.0, facecolor='darkgreen', zorder=14)
+
+    # ann_x = xtest
+    # ann_y = mu
+    #
+    # arrow_x = ann_x - 2.0
+    # arrow_y = ann_y - 1.5
+    #
+    # ax.annotate(s=r'$({0}, \mu({0}))$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
     #             arrowprops={'arrowstyle': 'fancy'},
-    #              weight='heavy', zorder=10)
-    # ax.annotate(s=r'$PI({})$'.format(label), xy=(xtest + 0.1, ytest_mean), xytext=(xtest + 0.3, ytest_mean - 1.0),
-    #              arrowprops={'arrowstyle': 'fancy'},
-    #              weight='heavy', fontsize='x-large', color='darkgreen', zorder=10)
+    #              weight='heavy', zorder=15)
+
+    ann_x = xtest + 0.5 * (np.max(vcurve_x) - xtest) / 2
+    ann_y = mu
+
+    arrow_x = ann_x
+    arrow_y = ann_y - 3.0
+
+    ax.annotate(s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+                 arrowprops={'arrowstyle': 'fancy'},
+                 weight='heavy', fontsize='x-large', color='darkgreen', zorder=15)
     return

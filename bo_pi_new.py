@@ -17,10 +17,10 @@ from bo_configurations import *
 
 SEED = None
 TOGGLE_PRINT = False
-INIT_X_PRESENTATION = [2.5, 3.5, 6, 7, 8]
-bounds["x"] = (2, 15)
+INIT_X_PRESENTATION = [2.5, 3.5, 5.5, 7, 9]
+bounds["x"] = (2, 13)
 bounds["gp_y"] = (-5, 5)
-boplot.set_rcparams(**{"legend.loc": "lower left"})
+# boplot.set_rcparams(**{"legend.loc": "lower left"})
 
 labels["xlabel"] = "$\lambda'$"
 labels["ylabel"] = "$c(\lambda)$"
@@ -76,16 +76,15 @@ def visualize_pi(initial_design, init=None):
     # 2. Mark current incumbent
     # 3. Mark Zone of Probable Improvement
     # 4. Draw Vertical Normal at a good candidate for improvement
-    # 5. Draw Vertical Normal at a bad candidate for improvement with circle of emphasis
-    # 6. Display Vertical Normal Distribution
+    # 5. Draw Vertical Normal at a bad candidate for improvement
 
     # boplot.set_rcparams(**{'legend.loc': 'lower left'})
 
-    boplot.set_rcparams(**{"figure.figsize": (16, 9)})
     logging.debug("Visualizing PI with initial design {} and init {}".format(initial_design, init))
     # Initialize dummy dataset
     x, y = initialize_dataset(initial_design=initial_design, init=init)
-    ymin = np.min(y)
+    ymin_arg = np.argmin(y)
+    ymin = y[ymin_arg]
     logging.debug("Initialized dataset with:\nsamples {0}\nObservations {1}".format(x, y))
 
     # Fit GP to the currently available dataset
@@ -105,7 +104,7 @@ def visualize_pi(initial_design, init=None):
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0], custom_x=x, ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, highlight_datapoint=None, highlight_label=None, ax=ax)
 
@@ -116,7 +115,7 @@ def visualize_pi(initial_design, init=None):
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_2.pdf", dpi='figure')
+        plt.savefig("pi_1.pdf", dpi='figure')
     else:
         plt.show()
     # -------------------------------------------
@@ -127,7 +126,7 @@ def visualize_pi(initial_design, init=None):
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0], custom_x=x, ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
 
@@ -149,10 +148,10 @@ def visualize_pi(initial_design, init=None):
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0], custom_x=x, ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
-    boplot.darken_graph(y=np.min(y), ax=ax)
+    boplot.darken_graph(y=ymin, ax=ax)
 
     ax.legend().set_zorder(20)
     ax.set_xlabel(labels['xlabel'])
@@ -163,31 +162,66 @@ def visualize_pi(initial_design, init=None):
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_2.pdf", dpi='figure')
+        plt.savefig("pi_3.pdf", dpi='figure')
     else:
         plt.show()
     # -------------------------------------------
 
     # 4. Draw Vertical Normal at a good candidate for improvement
     # -------------Plotting code -----------------
+    candidate = 5.0
     fig, ax = plt.subplots(1, 1, squeeze=True)
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0], custom_x=x, ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
-    boplot.darken_graph(y=x_, ax=ax)
-    boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=4.5, yscale=0.5)
+    boplot.darken_graph(y=ymin, ax=ax)
+    boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
 
     ax.legend().set_zorder(20)
     ax.set_xlabel(labels['xlabel'])
     ax.set_ylabel(labels['gp_ylabel'])
     ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
 
+    ax.legend().remove()
+
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_2.pdf", dpi='figure')
+        plt.savefig("pi_4.pdf", dpi='figure')
+    else:
+        plt.show()
+    # -------------------------------------------
+
+    # 5. Draw Vertical Normal at a bad candidate for improvement
+    # -------------Plotting code -----------------
+
+    fig, ax = plt.subplots(1, 1, squeeze=True)
+    ax.set_xlim(bounds["x"])
+    ax.set_ylim(bounds["gp_y"])
+    ax.grid()
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    boplot.plot_objective_function(ax=ax)
+    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
+    boplot.darken_graph(y=ymin, ax=ax)
+
+    candidate = 5.0
+    boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
+
+    candidate = 8.0
+    boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
+
+    ax.legend().set_zorder(20)
+    ax.set_xlabel(labels['xlabel'])
+    ax.set_ylabel(labels['gp_ylabel'])
+    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+
+    ax.legend().remove()
+
+    plt.tight_layout()
+    if TOGGLE_PRINT:
+        plt.savefig("pi_5.pdf", dpi='figure')
     else:
         plt.show()
     # -------------------------------------------
