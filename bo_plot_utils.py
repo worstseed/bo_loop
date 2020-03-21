@@ -411,7 +411,7 @@ def darken_graph(y, ax):
     recto = (ax.get_xlim()[0], y)
     rectwidth = ax.get_xlim()[1] - ax.get_xlim()[0]
     rectheight = ax.get_ylim()[1] - y
-    rect = Rectangle(recto, rectwidth, rectheight, fill=True, alpha=0.75, color='black', zorder=8)
+    rect = Rectangle(recto, rectwidth, rectheight, fill=True, alpha=0.75, color='white', zorder=8)
     ax.add_patch(rect)
     return
 
