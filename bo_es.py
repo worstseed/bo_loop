@@ -142,6 +142,7 @@ def visualize_es(initial_design, init=None):
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, ax=ax1)
 
     nsamples = 1
+    seed2 = 1256
     X_ = boplot.get_plot_domain(precision=histogram_precision)
     mu = gp.sample_y(X=X_, n_samples=nsamples, random_state=SEED)
     boplot.plot_gp_samples(
@@ -150,7 +151,8 @@ def visualize_es(initial_design, init=None):
         precision=histogram_precision,
         custom_x=X_,
         show_min=True,
-        ax=ax1
+        ax=ax1,
+        seed=seed2
     )
     min_idx = np.argmin(mu, axis=0)
     data_h2 = np.append(data_h1, [X_[min_idx, 0]], axis=0)
@@ -198,7 +200,8 @@ def visualize_es(initial_design, init=None):
         precision=histogram_precision,
         custom_x=X_,
         show_min=True,
-        ax=ax1
+        ax=ax1,
+        seed=seed2
     )
     min_idx = np.argmin(mu, axis=0)
     logging.info("Shape of X_ is {}".format(X_[min_idx, 0].shape))
@@ -248,7 +251,8 @@ def visualize_es(initial_design, init=None):
         precision=histogram_precision,
         custom_x=X_,
         show_min=False,
-        ax=ax1
+        ax=ax1,
+        seed=seed2
     )
     min_idx = np.argmin(mu, axis=0)
     logging.info("Shape of X_ is {}".format(X_[min_idx, 0].shape))

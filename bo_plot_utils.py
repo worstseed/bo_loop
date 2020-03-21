@@ -175,7 +175,7 @@ def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, hig
     return ax if return_flag else None
 
 
-def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False, ax=None):
+def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False, ax=None, seed=None):
     """
     Plot a number of samples from a GP.
     :param mu: numpy NDArray of shape [-1, nsamples] containing samples from the GP.
@@ -185,6 +185,7 @@ def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False,
     :param show_min: If True, highlights the minima of each sample. Default False.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
+    :param seed: If None, uses global np.random, else uses the given seed to generate np.random.RandomState
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
     """
     return_flag = False
@@ -199,10 +200,14 @@ def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False,
 
     min_idx = np.argmin(mu, axis=0).reshape(-1, nsamples)
 
+    rng = np.random.RandomState(np.random.get_state()[1])
+    if seed is not None:
+        rng = np.random.RandomState(seed)
+
     xmin = []
     mumin = []
     for i in range(nsamples):
-        ax.plot(X_, mu[:, i], color=np.random.rand(3), label="Sample {}".format(i), alpha=0.6,)
+        ax.plot(X_, mu[:, i], color=rng.rand(3), label="Sample {}".format(i+1), alpha=0.6,)
         xmin.append(X_[min_idx[0, i], 0])
         mumin.append(mu[min_idx[0, i], i])
     if show_min:
@@ -327,7 +332,7 @@ def plot_acquisition_function(acquisition, eta, model, add=None, ax=None):
     # plt.clf()
 
 
-def highlight_configuration(x, label=None, lloc='bottom', ax=None, **kwargs):
+def highlight_configuration(x, label=None, lloc='bottom', ax=None, disable_ticks=False, **kwargs):
     """
     Draw a vertical line at the given configuration to highlight it.
     :param x: Configuration.
@@ -336,6 +341,7 @@ def highlight_configuration(x, label=None, lloc='bottom', ax=None, **kwargs):
     :param lloc: Can be either 'top' or 'bottom' (default) to indicate the position of the label on the graph.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
+    :param disable_ticks: Only draw the horizontal line, don't bother with the ticks.
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
     """
     return_flag = False
@@ -347,7 +353,14 @@ def highlight_configuration(x, label=None, lloc='bottom', ax=None, **kwargs):
     x = x.reshape(-1)[0]
     logging.info("Highlighting configuration at {} with label {}".format(x, label))
 
-    ax.vlines(x, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
+    ax.vlines(
+        x, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1],
+        colors=colors['minor_tick_highlight'], linestyles='dashed',
+    )
+
+    if disable_ticks:
+        return ax if return_flag else None
+
     xlabel = "{0:.2f}".format(x) if label is None else label
 
     if lloc == 'top':
@@ -369,7 +382,7 @@ def highlight_configuration(x, label=None, lloc='bottom', ax=None, **kwargs):
 
     return ax if return_flag else None
 
-def highlight_output(y, label=None, lloc='left', ax=None, **kwargs):
+def highlight_output(y, label=None, lloc='left', ax=None, disable_ticks=False, **kwargs):
     """
     Draw a horizontal line at the given y-value to highlight it.
     :param y: y-value to be highlighted.
@@ -378,6 +391,7 @@ def highlight_output(y, label=None, lloc='left', ax=None, **kwargs):
     :param lloc: Can be either 'left' (default) or 'right' to indicate the position of the label on the graph.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
+    :param disable_ticks: Only draw the horizontal line, don't bother with the ticks.
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
     """
     return_flag = False
@@ -391,9 +405,11 @@ def highlight_output(y, label=None, lloc='left', ax=None, **kwargs):
     ax.hlines(
         y,
         xmin=ax.get_xlim()[0], xmax=ax.get_xlim()[1],
-        colors=colors['minor_tick_highlight'], linestyles='dashed',
-        label='Next Sample'
+        colors=colors['minor_tick_highlight'], linestyles='dashed'
     )
+
+    if disable_ticks:
+        return ax if return_flag else None
 
     if lloc == 'right':
         ax.tick_params(
