@@ -285,7 +285,10 @@ def visualize_look_ahead(initial_design, init=None):
         ax2.legend().remove()
 
     # Actual 2-3 transition A
-    fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
+    if TOGGLE_PRINT:
+        fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True, figsize=(18,9))
+    else:
+        fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True)
     draw_2_3_transition(imaginary_lambda=5.0, ax1=ax1, ax2=ax2)
 
     plt.tight_layout()
@@ -299,7 +302,11 @@ def visualize_look_ahead(initial_design, init=None):
     # ---------------------------------------
     # Draw figure 2-3 transition animation B
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
+    if TOGGLE_PRINT:
+        fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True, figsize=(18,9))
+    else:
+        fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True)
+
     draw_2_3_transition(imaginary_lambda=5.5, ax1=ax1, ax2=ax2)
 
     plt.tight_layout()
@@ -313,7 +320,11 @@ def visualize_look_ahead(initial_design, init=None):
     # ---------------------------------------
     # Draw figure 2-3 transition animation C
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, squeeze=True)
+    if TOGGLE_PRINT:
+        fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True, figsize=(18,9))
+    else:
+        fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True)
+
     draw_2_3_transition(imaginary_lambda=3.5, ax1=ax1, ax2=ax2)
 
     plt.tight_layout()
