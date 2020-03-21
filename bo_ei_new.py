@@ -17,10 +17,13 @@ from bo_configurations import *
 
 SEED = None
 TOGGLE_PRINT = False
-INIT_X_PRESENTATION = [2.5, 4, 6, 7, 8]
+INIT_X_PRESENTATION = [2.5, 3.5, 5.5, 7, 9]
+bounds["x"] = (2, 13)
+bounds["gp_y"] = (-5, 5)
+# boplot.set_rcparams(**{"legend.loc": "lower left"})
 
 labels["xlabel"] = "$\lambda'$"
-labels["ylabel"] = "$c(\lambda')$"
+labels["gp_ylabel"] = "$c(\lambda')$"
 
 def initialize_dataset(initial_design, init=None):
     """
@@ -29,6 +32,8 @@ def initialize_dataset(initial_design, init=None):
     :param init: Number of datapoints to initialize with, if relevant
     :return:
     """
+
+    x = None
 
     # sample initial query points
     if initial_design == 'uniform':
@@ -67,11 +72,20 @@ def visualize_ei(initial_design, init=None):
     :return: None
     """
 
+    # 1. Plot GP fit on initial dataset
+    # 2. Mark current incumbent
+    # 3. Mark Zone of Probable Improvement
+    # 4. Mark Hypothetical Real cost of a random configuration
+    # 5. Display I(lambda)
+    # 6. Display Vertical Normal Distribution
+
     # boplot.set_rcparams(**{'legend.loc': 'lower left'})
 
-    logging.debug("Visualizing EI with initial design {} and init {}".format(initial_design, init))
+    logging.debug("Visualizing PI with initial design {} and init {}".format(initial_design, init))
     # Initialize dummy dataset
     x, y = initialize_dataset(initial_design=initial_design, init=init)
+    ymin_arg = np.argmin(y)
+    ymin = y[ymin_arg]
     logging.debug("Initialized dataset with:\nsamples {0}\nObservations {1}".format(x, y))
 
     # Fit GP to the currently available dataset
@@ -86,145 +100,227 @@ def visualize_ei(initial_design, init=None):
                   "Predicted Means: {2}\nPredicted STDs: {3}".format(x, y, *(gp.predict(x, return_std=True))))
 
     # 1. Plot GP fit on initial dataset
+    # -------------Plotting code -----------------
+    fig, ax = plt.subplots(1, 1, squeeze=True)
+    ax.set_xlim(bounds["x"])
+    ax.set_ylim(bounds["gp_y"])
+    ax.grid()
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    boplot.plot_objective_function(ax=ax)
+    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, highlight_datapoint=None, highlight_label=None, ax=ax)
+
+    ax.legend().set_zorder(20)
+    ax.set_xlabel(labels['xlabel'])
+    ax.set_ylabel(labels['gp_ylabel'])
+    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+
+    plt.tight_layout()
+    if TOGGLE_PRINT:
+        plt.savefig("ei_1.pdf")
+    else:
+        plt.show()
+    # -------------------------------------------
+
     # 2. Mark current incumbent
+    # -------------Plotting code -----------------
+    fig, ax = plt.subplots(1, 1, squeeze=True)
+    ax.set_xlim(bounds["x"])
+    ax.set_ylim(bounds["gp_y"])
+    ax.grid()
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    boplot.plot_objective_function(ax=ax)
+    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
+
+    ax.legend().set_zorder(20)
+    ax.set_xlabel(labels['xlabel'])
+    ax.set_ylabel(labels['gp_ylabel'])
+    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+
+    plt.tight_layout()
+    if TOGGLE_PRINT:
+        plt.savefig("ei_2.pdf")
+    else:
+        plt.show()
+    # -------------------------------------------
+
     # 3. Mark Zone of Probable Improvement
-    # 4. Mark Hypothetical Real cost of a random configuration
-    # 5. Display I(lambda)
-    # 6. Display Vertical Normal Distribution
-
-
-
-
-    # Assume next evaluation location
-    # x_ = np.mean(x, keepdims=True)
-    #x_ = np.array([[5.8]])
-    x_ = np.array([[5.0]])
-    print(x_)
-    y_ = f(x_[0])
-
-    # Update dataset with new observation
-    X2_ = np.append(x, x_, axis=0)
-    Y2_ = y + [y_]
-
-    logging.info("x: {}, y: {}".format(x_, y_))
-
-    # Fit GP to the updated dataset
-    gp2 = GPR(kernel=Matern())
-    logging.debug("Fitting GP to\nx: {}\ny:{}".format(X2_, Y2_))
-    gp2.fit(X2_, Y2_)  # fit the model
-    mu_star_t1_xy = get_mu_star(gp2)
-    logging.info("Mu-star at time t+1: {}".format(mu_star_t1_xy))
-
-    # -------------------------Plotting madness begins---------------------------
-    # Draw Figure 1.
-
-    # fig.tight_layout()
-    labels['gp_mean'] = r'Mean - $\mu^(t)(\cdot)$'
-    # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^t$'
-    def draw_figure_1(ax):
-        ax.set_xlim(bounds["x"])
-        ax.set_ylim(bounds["gp_y"])
-        ax.grid()
-        boplot.plot_objective_function(ax=ax)
-        boplot.plot_gp(model=gp, confidence_intervals=[1.0], ax=ax, custom_x=x)
-        boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, ax=ax)
-
-        ax.legend()
-        ax.set_xlabel(labels['xlabel'])
-        ax.set_ylabel(labels['gp_ylabel'])
-        ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    if TOGGLE_PRINT:
-        fig, ax = plt.subplots(1, 1, squeeze=True)
-        draw_figure_1(ax)
-        plt.tight_layout()
-        plt.savefig("ei_1.pdf", dpi='figure')
-
+    # -------------Plotting code -----------------
     fig, ax = plt.subplots(1, 1, squeeze=True)
-    draw_figure_1(ax)
-    boplot.highlight_configuration(mu_star_t_xy[0], lloc='bottom', ax=ax)
-    boplot.highlight_output(mu_star_t_xy[1], label='', lloc='right', ax=ax, fontsize=30)
-    boplot.annotate_y_edge(label='${(\mu^*)}^{(t)}$', xy=mu_star_t_xy, align='right', ax=ax)
+    ax.set_xlim(bounds["x"])
+    ax.set_ylim(bounds["gp_y"])
+    ax.grid()
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    boplot.plot_objective_function(ax=ax)
+    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
+    boplot.darken_graph(y=ymin, ax=ax)
+
+    ax.legend().set_zorder(20)
+    ax.set_xlabel(labels['xlabel'])
+    ax.set_ylabel(labels['gp_ylabel'])
+    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+
     ax.legend().remove()
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("ei_2.pdf", dpi='figure')
+        plt.savefig("ei_3.pdf")
+    else:
+        plt.show()
+    # -------------------------------------------
+
+    # 4. Forget the underlying objective function
+    # -------------------------------------------
+
+    fig, ax = plt.subplots(1, 1, squeeze=True)
+    ax.set_xlim(bounds["x"])
+    ax.set_ylim(bounds["gp_y"])
+    ax.grid()
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    # boplot.plot_objective_function(ax=ax)
+    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
+    boplot.darken_graph(y=ymin, ax=ax)
+
+    plt.tight_layout()
+    if TOGGLE_PRINT:
+        plt.savefig("ei_4.pdf")
     else:
         plt.show()
 
-    # End of figure 1.
-    # ---------------------------------------
-    # Draw Figure 2.
+    # -------------------------------------------
 
-    labels['gp_mean'] = r'Mean - $\mu^{t+1}(\cdot)|_\lambda$'
-    # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^{t+1}|_\lambda$'
-
-    def draw_figure_2(ax):
-        ax.set_xlim(bounds["x"])
-        ax.set_ylim(bounds["gp_y"])
-        ax.grid()
-        boplot.plot_objective_function(ax=ax)
-        boplot.plot_gp(model=gp2, confidence_intervals=[1.0], ax=ax, custom_x=X2_)
-        boplot.mark_observations(X_=X2_, Y_=Y2_, highlight_datapoint=np.where(np.isclose(X2_, x_))[0],
-                                 mark_incumbent=False,
-                                 highlight_label=r"Hypothetical Observation $<\lambda, c(\lambda)>$", ax=ax)
-
-        ax.legend()
-        ax.set_xlabel(labels['xlabel'])
-        ax.set_ylabel(labels['gp_ylabel'])
-        ax.set_title(r"Visualization of $\mathcal{G}^{(t+1)}|_\lambda$", loc='left')
-
-    if TOGGLE_PRINT:
-        fig, ax = plt.subplots(1, 1, squeeze=True)
-        draw_figure_2(ax)
-        plt.tight_layout()
-        plt.savefig("ei_3.pdf", dpi='figure')
+    # 5. Mark Hypothetical Real cost of a random configuration
+    # -------------------------------------------
 
     fig, ax = plt.subplots(1, 1, squeeze=True)
-    draw_figure_2(ax)
-    boplot.highlight_configuration(mu_star_t1_xy[0], lloc='bottom', ax=ax)
-    boplot.highlight_output(mu_star_t1_xy[1], label='', lloc='right', ax=ax, fontsize=28)
-    boplot.annotate_y_edge(label='${(\mu^*)}^{(t+1)}|_\lambda$', xy=mu_star_t1_xy, align='right', ax=ax)
+    ax.set_xlim(bounds["x"])
+    ax.set_ylim(bounds["gp_y"])
+    ax.grid()
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    # boplot.plot_objective_function(ax=ax)
+    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
+    boplot.darken_graph(y=ymin, ax=ax)
+
+    ax.legend().set_zorder(20)
+    ax.set_xlabel(labels['xlabel'])
+    ax.set_ylabel(labels['gp_ylabel'])
+    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+
+    candidate = 11.0
+    cost = -3.5
+    boplot.highlight_configuration(x=np.array([candidate]), label=r'$\lambda$', lloc='bottom', ax=ax)
+    boplot.highlight_output(y=np.array([cost]), label='', lloc='left', ax=ax)
+    boplot.annotate_y_edge(label=r'$c(\lambda)$', xy=(candidate, cost), align='left', ax=ax)
+
     ax.legend().remove()
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("ei_4.pdf", dpi='figure')
+        plt.savefig("ei_5.pdf")
     else:
         plt.show()
 
+    # -------------------------------------------
 
-    # End of figure 2.
-    # ---------------------------------------
-    # Draw Figure 3 for KG
-    fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True)
-    # fig.tight_layout()
-    labels['gp_mean'] = r'Mean - $\mu^(t)(\cdot)$'
-    draw_figure_1(ax1)
-    boplot.highlight_output(mu_star_t_xy[1], label='', lloc='right', ax=ax1, fontsize=30)
-    boplot.annotate_y_edge(label='${(\mu^*)}^{t}$', xy=mu_star_t_xy, align='right', ax=ax1)
-    ax1.get_legend().remove()
-    labels['gp_mean'] = r'Mean - $\mu^{(t+1)}(\cdot)|_\lambda$'
-    draw_figure_2(ax2)
-    boplot.highlight_output(mu_star_t1_xy[1], label='', lloc='right', ax=ax2, fontsize=28)
-    boplot.annotate_y_edge(label='${(\mu^*)}^{(t+1)}|_\lambda$', xy=mu_star_t1_xy, align='left', ax=ax2)
-    ax2.get_legend().remove()
+    # 6. Display I(lambda)
+    # -------------------------------------------
+
+    fig, ax = plt.subplots(1, 1, squeeze=True)
+    ax.set_xlim(bounds["x"])
+    ax.set_ylim(bounds["gp_y"])
+    ax.grid()
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    # boplot.plot_objective_function(ax=ax)
+    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
+    boplot.darken_graph(y=ymin, ax=ax)
+
+    ax.legend().set_zorder(20)
+    ax.set_xlabel(labels['xlabel'])
+    ax.set_ylabel(labels['gp_ylabel'])
+    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+
+    boplot.highlight_configuration(x=np.array([candidate]), label=r'$\lambda$', lloc='bottom', ax=ax)
+    boplot.highlight_output(y=np.array([cost]), label='', lloc='left', ax=ax)
+    boplot.annotate_y_edge(label=r'$c(\lambda)$', xy=(candidate, cost), align='left', ax=ax)
+
+    xmid = (x[ymin_arg][0] + candidate) / 2.
+    ax.annotate(s='', xy=(xmid, cost), xytext=(xmid, ymin),
+                 arrowprops={'arrowstyle': '<|-|>',})
+
+    textx = xmid + (ax.get_xlim()[1] - ax.get_xlim()[0]) / 40
+    ax.text(textx, (ymin + cost) / 2, r'$I(x)$')
+
+    ax.legend().remove()
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("ei_5.pdf", dpi='figure')
+        plt.savefig("ei_6.pdf")
     else:
         plt.show()
 
+    # -------------------------------------------
+
+
+    # 7. Display Vertical Normal Distribution
+    # -------------------------------------------
+
+    fig, ax = plt.subplots(1, 1, squeeze=True)
+    ax.set_xlim(bounds["x"])
+    ax.set_ylim(bounds["gp_y"])
+    ax.grid()
+    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    # boplot.plot_objective_function(ax=ax)
+    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
+    boplot.darken_graph(y=ymin, ax=ax)
+
+    ax.legend().set_zorder(20)
+    ax.set_xlabel(labels['xlabel'])
+    ax.set_ylabel(labels['gp_ylabel'])
+    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+
+    boplot.highlight_configuration(x=np.array([candidate]), label=r'$\lambda$', lloc='bottom', ax=ax)
+    boplot.highlight_output(y=np.array([cost]), label='', lloc='left', ax=ax)
+    boplot.annotate_y_edge(label=r'$c(\lambda)$', xy=(candidate, cost), align='left', ax=ax)
+
+    xmid = (x[ymin_arg][0] + candidate) / 2.
+    ax.annotate(s='', xy=(xmid, cost), xytext=(xmid, ymin),
+                 arrowprops={'arrowstyle': '<|-|>',})
+
+    textx = xmid + (ax.get_xlim()[1] - ax.get_xlim()[0]) / 40
+    ax.text(textx, (ymin + cost) / 2, r'$I(x)$')
+
+    vcurve_x, vcurve_y, mu = boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
+
+    ann_x = candidate + 0.3 * (np.max(vcurve_x) - candidate) / 2
+    ann_y = ymin - (mu - ymin) / 2
+
+    arrow_x = ann_x + 0.5
+    arrow_y = ann_y - 3.0
+
+    # label = "{:.2f}".format(candidate)
+    label = '\lambda'
+
+    ax.annotate(
+        s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+        arrowprops={'arrowstyle': 'fancy'},
+        color='darkgreen', zorder=15
+    )
+
+    ax.legend().remove()
+
+    plt.tight_layout()
+    if TOGGLE_PRINT:
+        plt.savefig("ei_7.pdf")
+    else:
+        plt.show()
+
+    # -------------------------------------------
 
 
 def main(init_size, initial_design):
-        visualize_ei(
-            init=init_size,
-            initial_design=initial_design,
-        )
-
+    visualize_ei(
+        init=init_size,
+        initial_design=initial_design,
+    )
 
 
 if __name__ == '__main__':
@@ -235,7 +331,7 @@ if __name__ == '__main__':
                                 help='Size of the initial database',
                                 type=int)
     cmdline_parser.add_argument('-i', '--initial_design',
-                                default="random",
+                                default="presentation",
                                 choices=['random', 'uniform', 'presentation'],
                                 help='How to choose first observations.')
     cmdline_parser.add_argument('-v', '--verbose',
@@ -272,7 +368,7 @@ if __name__ == '__main__':
     else:
         boplot.enable_onscreen_display()
 
-    #init_size = max(1, int(args.num_func_evals * args.fraction_init))
+    # init_size = max(1, int(args.num_func_evals * args.fraction_init))
 
     main(
         init_size=args.init_db_size,

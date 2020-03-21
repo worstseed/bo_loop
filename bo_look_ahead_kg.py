@@ -20,7 +20,7 @@ TOGGLE_PRINT = False
 INIT_X_PRESENTATION = [2.5, 4, 6, 7, 8]
 
 labels["xlabel"] = "$\lambda'$"
-labels["ylabel"] = "$c(\lambda')$"
+labels["gp_ylabel"] = "$c(\lambda')$"
 
 def initialize_dataset(initial_design, init=None):
     """
@@ -131,7 +131,7 @@ def visualize_look_ahead(initial_design, init=None):
         fig, ax = plt.subplots(1, 1, squeeze=True)
         draw_figure_1(ax)
         plt.tight_layout()
-        plt.savefig("look_ahead_1.pdf", dpi='figure')
+        plt.savefig("look_ahead_1.pdf")
 
     fig, ax = plt.subplots(1, 1, squeeze=True)
     draw_figure_1(ax)
@@ -142,7 +142,7 @@ def visualize_look_ahead(initial_design, init=None):
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("look_ahead_KG_2.pdf", dpi='figure')
+        plt.savefig("look_ahead_KG_2.pdf")
     else:
         plt.show()
 
@@ -216,7 +216,7 @@ def visualize_look_ahead(initial_design, init=None):
         fig, ax = plt.subplots(1, 1, squeeze=True)
         draw_figure_2(ax)
         plt.tight_layout()
-        plt.savefig("look_ahead_3.pdf", dpi='figure')
+        plt.savefig("look_ahead_3.pdf")
 
     fig, ax = plt.subplots(1, 1, squeeze=True)
     draw_figure_2(ax)
@@ -227,7 +227,7 @@ def visualize_look_ahead(initial_design, init=None):
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("look_ahead_KG_4.pdf", dpi='figure')
+        plt.savefig("look_ahead_KG_4.pdf")
     else:
         plt.show()
 
@@ -342,7 +342,7 @@ def visualize_look_ahead(initial_design, init=None):
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("look_ahead_KG_5.pdf", dpi='figure')
+        plt.savefig("look_ahead_KG_5.pdf")
     else:
         plt.show()
 

@@ -182,16 +182,18 @@ def visualize_pi(initial_design, init=None):
     vcurve_x, vcurve_y, mu = boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
 
     ann_x = candidate + 0.5 * (np.max(vcurve_x) - candidate) / 2
-    ann_y = mu
+    ann_y = mu - 0.25
 
     arrow_x = ann_x
     arrow_y = ann_y - 3.0
 
     label = "{:.2f}".format(candidate)
 
-    ax.annotate(s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
-                arrowprops={'arrowstyle': 'fancy'},
-                weight='heavy', fontsize='x-large', color='darkgreen', zorder=15)
+    ax.annotate(
+        s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+        arrowprops={'arrowstyle': 'fancy'},
+        weight='heavy', color='darkgreen', zorder=15
+    )
 
     ax.legend().set_zorder(20)
     ax.set_xlabel(labels['xlabel'])
@@ -220,10 +222,42 @@ def visualize_pi(initial_design, init=None):
     boplot.darken_graph(y=ymin, ax=ax)
 
     candidate = 5.0
-    boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
+    vcurve_x, vcurve_y, mu = boplot.draw_vertical_normal(
+        gp=gp, incumbenty=ymin, ax=ax, xtest=candidate,
+        xscale=2.0, yscale=1.0
+    )
+
+    ann_x = candidate + 0.5 * (np.max(vcurve_x) - candidate) / 2
+    ann_y = mu - 0.25
+
+    arrow_x = ann_x
+    arrow_y = ann_y - 3.0
+
+    label = "{:.2f}".format(candidate)
+
+    ax.annotate(
+        s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+        arrowprops={'arrowstyle': 'fancy'},
+        weight='heavy', color='darkgreen', zorder=15
+    )
 
     candidate = 8.0
-    boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
+    vcurve_x, vcurve_y, mu = boplot.draw_vertical_normal(
+        gp=gp, incumbenty=ymin, ax=ax, xtest=candidate,
+        xscale=2.0, yscale=1.0
+    )
+
+    ann_x = candidate + 0.5 * (np.max(vcurve_x) - candidate) / 2
+    ann_y = mu
+
+    arrow_x = ann_x
+    arrow_y = ann_y - 3.0
+
+    label = "{:.2f}".format(candidate)
+
+    ax.annotate(s=r'$PI({})$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+                arrowprops={'arrowstyle': 'fancy'},
+                weight='heavy', color='darkgreen', zorder=15)
 
     ax.legend().set_zorder(20)
     ax.set_xlabel(labels['xlabel'])
