@@ -200,7 +200,7 @@ def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False,
 
     min_idx = np.argmin(mu, axis=0).reshape(-1, nsamples)
 
-    rng = np.random.RandomState(np.random.get_state()[1])
+    rng = np.random.mtrand._rand
     if seed is not None:
         rng = np.random.RandomState(seed)
 
