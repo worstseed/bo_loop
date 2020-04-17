@@ -33,6 +33,10 @@ RC_LEGEND = {
 rc("legend", **RC_LEGEND)
 rc("xtick.minor", pad=30.0)
 
+# To be implemented when needed in order to keep track of multiple highlighted minor ticks
+highlighted_yticks = []
+highlighted_xticks = []
+
 
 def enable_printing():
     rc("figure", figsize=(21, 9), dpi=300.0)
@@ -192,7 +196,7 @@ def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, hig
         )
         mask[highlight_datapoint] = 0
     ax.scatter(X_[mask, 0], Y_[mask, 0], color=colors['observations'], marker='X', label="Observations",
-                zorder=zorders['datapoints'])
+               zorder=zorders['datapoints'])
 
     return ax if return_flag else None
 
@@ -229,7 +233,7 @@ def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False,
     xmin = []
     mumin = []
     for i in range(nsamples):
-        ax.plot(X_, mu[:, i], color=rng.rand(3), label="Sample {}".format(i+1), alpha=0.6,)
+        ax.plot(X_, mu[:, i], color=rng.rand(3), label="Sample {}".format(i + 1), alpha=0.6, )
         xmin.append(X_[min_idx[0, i], 0])
         mumin.append(mu[min_idx[0, i], i])
     if show_min:
@@ -243,7 +247,6 @@ def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False,
         )
 
     return ax if return_flag else None
-
 
 
 def plot_gp(model, confidence_intervals=None, type='both', custom_x=None, precision=None, ax=None):
@@ -266,7 +269,6 @@ def plot_gp(model, confidence_intervals=None, type='both', custom_x=None, precis
 
     X_ = get_plot_domain(precision=precision, custom_x=custom_x)
     logging.debug("Generated x values for plotting of shape {0}".format(X_.shape))
-
 
     def draw_confidence_envelopes(mu, sigma, confidence_intervals):
         confidence_intervals = np.array(confidence_intervals)
@@ -293,7 +295,6 @@ def plot_gp(model, confidence_intervals=None, type='both', custom_x=None, precis
                 facecolor=colors['gp_variance'], alpha=alpha,
                 label="{0:.2f}-Sigma Confidence Envelope".format(k)
             )
-
 
     mu, sigma = model.predict(X_, return_std=True)
     logging.debug("Plotting GP with these values:\nSamples:\t\t{0}\nMeans:\t\t{1}\nSTDs:\t\t{2}".format(
@@ -340,7 +341,7 @@ def plot_acquisition_function(acquisition, eta, model, add=None, ax=None):
     acquisition_fun = acquisition_functions[acquisition](X_, model=model, eta=eta, add=add)
     acquisition_fun = -acquisition_fun
     zipped = list(zip(X_, acquisition_fun))
-    zipped.sort(key = lambda t: t[0])
+    zipped.sort(key=lambda t: t[0])
     X_, acquisition_fun = list(zip(*zipped))
 
     ax.plot(X_, acquisition_fun, color=colors['acq_fun'], label=labels[acquisition])
@@ -354,36 +355,38 @@ def plot_acquisition_function(acquisition, eta, model, add=None, ax=None):
     # plt.clf()
 
 
-def highlight_configuration(x, label=None, lloc='bottom', ax=None, disable_ticks=False, **kwargs):
+def highlight_configuration(x, label=None, lloc='bottom', ax=None, disable_ticks=False, append_ticks=False, **kwargs):
     """
     Draw a vertical line at the given configuration to highlight it.
-    :param x: Configuration.
+    :param x: Configurations to be highlighted.
     :param label: If None (default), the x-value up to decimal places is placed as a minor tick, otherwise the given
-    label is used.
+    labels are used. Assumed to have a one-to-one correspondence with the given configurations.
     :param lloc: Can be either 'top' or 'bottom' (default) to indicate the position of the label on the graph.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
     :param disable_ticks: Only draw the horizontal line, don't bother with the ticks.
+    :param append_ticks: When True, adds the given ticks to those already present. Otherwise, drops the old yticks.
+    Default is False.
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
     """
+    global highlighted_xticks
     return_flag = False
     if ax is None:
         fig, ax = plt.subplots(1, 1, squeeze=True)
         return_flag = True
 
     # Assume we will recieve x as a view on a numpy array
-    x = x.reshape(-1)[0]
-    logging.info("Highlighting configuration at {} with label {}".format(x, label))
+    xvals = x.reshape(-1)
+    logging.info("Highlighting configuration at {} with label {}".format(xvals, label))
 
     ax.vlines(
-        x, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1],
+        xvals, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1],
         colors=colors['minor_tick_highlight'], linestyles='dashed',
     )
 
     if disable_ticks:
+        highlighted_xticks = []
         return ax if return_flag else None
-
-    xlabel = "{0:.2f}".format(x) if label is None else label
 
     if lloc == 'top':
         ax.tick_params(
@@ -398,39 +401,61 @@ def highlight_configuration(x, label=None, lloc='bottom', ax=None, disable_ticks
             top=False, labeltop=False
         )
 
+    if label is None:
+        label = ["{0:.2f}".format(val) for val in xvals]
+    elif type(label) is str:
+        label = [label]
+    else:
+        label = [l for l in label]
+
+    new_xticks = [(val, l) for val, l in zip(xvals, label)]
+
+    if append_ticks:
+        highlighted_xticks += new_xticks
+    else:
+        highlighted_xticks = new_xticks
+
+    highlighted_xticks.sort(key=lambda e: e[0])
+    logging.info(f"Placing minor xticks:{highlighted_xticks}")
     label_props = {'color': colors['minor_tick_highlight'], **kwargs}
-    ax.set_xticks([x], minor=True)
-    ax.set_xticklabels([xlabel], label_props, minor=True)
+    ax.set_xticks([val[0] for val in highlighted_xticks], minor=True)
+    ax.set_xticklabels([val[1] for val in highlighted_xticks], label_props, minor=True)
 
     return ax if return_flag else None
 
-def highlight_output(y, label=None, lloc='left', ax=None, disable_ticks=False, **kwargs):
+
+def highlight_output(y, label=None, lloc='left', ax=None, disable_ticks=False, append_ticks=False, **kwargs):
     """
-    Draw a horizontal line at the given y-value to highlight it.
-    :param y: y-value to be highlighted.
+    Draw a horizontal line at the given y-values to highlight them.
+    :param y: y-values to be highlighted.
     :param label: If None (default), the y-value up to decimal places is placed as a minor tick, otherwise the given
-    label is used.
+    labels are used. Assumed to have a one-to-one correspondence with the given y-values.
     :param lloc: Can be either 'left' (default) or 'right' to indicate the position of the label on the graph.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
     :param disable_ticks: Only draw the horizontal line, don't bother with the ticks.
+    :param append_ticks: When True, adds the given ticks to those already present. Otherwise, drops the old yticks.
+    Default is False.
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
     """
     return_flag = False
+    global highlighted_yticks
     if ax is None:
         fig, ax = plt.subplots(1, 1, squeeze=True)
         return_flag = True
 
     # Assume we will recieve y as a view on a numpy array
-    y = y.reshape(-1)[0]
+    yvals = y.reshape(-1)
 
-    ax.hlines(
-        y,
-        xmin=ax.get_xlim()[0], xmax=ax.get_xlim()[1],
-        colors=colors['minor_tick_highlight'], linestyles='dashed'
-    )
+    for val in yvals:
+        ax.hlines(
+            val,
+            xmin=ax.get_xlim()[0], xmax=ax.get_xlim()[1],
+            colors=colors['minor_tick_highlight'], linestyles='dashed'
+        )
 
     if disable_ticks:
+        highlighted_yticks = []
         return ax if return_flag else None
 
     if lloc == 'right':
@@ -446,12 +471,27 @@ def highlight_output(y, label=None, lloc='left', ax=None, disable_ticks=False, *
             right=False, labelright=False
         )
 
-    ylabel = "{0:.2f}".format(y) if label is None else label
+    if label is None:
+        label = ["{0:.2f}".format(val) for val in yvals]
+    elif type(label) is str:
+        label = [label]
+    else:
+        label = [l for l in label]
+
+    new_yticks = [(val, l) for val, l in zip(yvals, label)]
+    if append_ticks:
+        highlighted_yticks += new_yticks
+    else:
+        highlighted_yticks = new_yticks
+    highlighted_yticks.sort(key=lambda e: e[0])
+    logging.info(f"Placing minor yticks:{highlighted_yticks}")
+    # ylabel = "{0:.2f}".format(y) if label is None else label
     label_props = {'color': colors['minor_tick_highlight'], **kwargs}
-    ax.set_yticks([y], minor=True)
-    ax.set_yticklabels([ylabel], label_props, minor=True)
+    ax.set_yticks([val[0] for val in highlighted_yticks], minor=True)
+    ax.set_yticklabels([val[1] for val in highlighted_yticks], label_props, minor=True)
 
     return ax if return_flag else None
+
 
 def darken_graph(y, ax):
     """
@@ -474,9 +514,8 @@ def darken_graph(y, ax):
     return
 
 
-def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, step=0.01,
-                         xlim=2.0, xscale=1.0, yscale=1.0):
-
+def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, step=0.01, xscale=1.0, yscale=1.0, fill=True,
+                         draw_domain=True):
     # Generate a normal pdf centered at xtest
     ytest_mean, ytest_cov = gp.predict([[xtest]], return_cov=True)
     mu = ytest_mean[0]
@@ -488,7 +527,7 @@ def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, step=0.01,
     # print("ytest mean:{}, cov:{}".format(ytest_mean, ytest_cov))
 
     # Generate a Normal distribution centered around it's mean.
-    norm_x = np.arange(mu - xlim, mu + xlim + step, step)
+    norm_x = np.arange(mu + bounds['gp_y'][0], mu + bounds['gp_y'][1], step)
     norm_y = norm.pdf(norm_x, mu, sigma) * yscale
     logging.info("Min of normal_y is: {}\nMean of normal_y is:{}".format(np.min(norm_y), np.mean(norm_y)))
 
@@ -504,11 +543,13 @@ def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, step=0.01,
     # vcurve_y = norm_y + mu
 
     ax.plot(xtest, mu, color='red', marker='o', markersize=20, zorder=zorders['annotations_high'])
-    ax.vlines(xtest, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors='black', linestyles='dashed',
+    if draw_domain:
+        ax.vlines(xtest, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors='black', linestyles='dashed',
               zorder=zorders['zone_of_imp'] + 1)
     ax.plot(vcurve_x, vcurve_y, color='black', zorder=zorders['zone_of_imp'] + 1)
-    fill_args = np.where(vcurve_y < incumbenty)
-    ax.fill_betweenx(vcurve_y[fill_args], xtest, vcurve_x[fill_args], alpha=1.0, facecolor='darkgreen',
+    if fill:
+        fill_args = np.where(vcurve_y < incumbenty)
+        ax.fill_betweenx(vcurve_y[fill_args], xtest, vcurve_x[fill_args], alpha=1.0, facecolor='darkgreen',
                      zorder=zorders['annotations_high'] - 5)
 
     # ann_x = xtest
@@ -521,4 +562,4 @@ def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, step=0.01,
     #             arrowprops={'arrowstyle': 'fancy'},
     #              weight='heavy', zorder=15)
 
-    return (vcurve_x, vcurve_y, mu)
+    return vcurve_x, vcurve_y, mu
