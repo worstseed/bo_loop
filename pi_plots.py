@@ -2,10 +2,6 @@ import warnings
 warnings.filterwarnings('ignore')
 import argparse
 import logging
-from functools import partial
-
-import numpy as np
-from scipy.optimize import minimize
 from sklearn.gaussian_process import GaussianProcessRegressor as GPR
 from sklearn.gaussian_process.kernels import Matern
 
@@ -18,12 +14,15 @@ from bo_configurations import *
 SEED = None
 TOGGLE_PRINT = False
 INIT_X_PRESENTATION = [2.5, 3.5, 5.5, 7, 9]
+OUTPUT_DIR = os.path.abspath("./outputs/pi")
 bounds["x"] = (2, 13)
 bounds["gp_y"] = (-5, 5)
-# boplot.set_rcparams(**{"legend.loc": "lower left"})
 
-labels["xlabel"] = "$\lambda'$"
-labels["gp_ylabel"] = "$c(\lambda')$"
+boplot.set_rc("savefig", directory=OUTPUT_DIR)
+
+labels["xlabel"] = "$\lambda$"
+labels["gp_ylabel"] = ""
+
 
 def initialize_dataset(initial_design, init=None):
     """
@@ -78,7 +77,6 @@ def visualize_pi(initial_design, init=None):
     # 4. Draw Vertical Normal at a good candidate for improvement
     # 5. Draw Vertical Normal at a bad candidate for improvement
 
-    # boplot.set_rcparams(**{'legend.loc': 'lower left'})
 
     logging.debug("Visualizing PI with initial design {} and init {}".format(initial_design, init))
     # Initialize dummy dataset
@@ -104,18 +102,18 @@ def visualize_pi(initial_design, init=None):
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, highlight_datapoint=None, highlight_label=None, ax=ax)
 
     ax.legend().set_zorder(20)
     ax.set_xlabel(labels['xlabel'])
-    ax.set_ylabel(labels['gp_ylabel'])
-    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+    # ax.set_ylabel(labels['gp_ylabel'])
+    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_1.pdf")
+        plt.savefig(f"{OUTPUT_DIR}/pi_1.pdf")
     else:
         plt.show()
     # -------------------------------------------
@@ -126,18 +124,18 @@ def visualize_pi(initial_design, init=None):
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
 
     ax.legend().set_zorder(20)
     ax.set_xlabel(labels['xlabel'])
-    ax.set_ylabel(labels['gp_ylabel'])
-    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+    # ax.set_ylabel(labels['gp_ylabel'])
+    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_2.pdf")
+        plt.savefig(f"{OUTPUT_DIR}/pi_2.pdf")
     else:
         plt.show()
     # -------------------------------------------
@@ -148,21 +146,24 @@ def visualize_pi(initial_design, init=None):
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
-    boplot.plot_objective_function(ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
+    # boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
     boplot.darken_graph(y=ymin, ax=ax)
 
     ax.legend().set_zorder(20)
     ax.set_xlabel(labels['xlabel'])
-    ax.set_ylabel(labels['gp_ylabel'])
-    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    ax.legend().remove()
+    # ax.set_ylabel(labels['gp_ylabel'])
+    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_3.pdf")
+        plt.savefig(f"{OUTPUT_DIR}/pi_3a.pdf")
+
+    ax.legend().remove()
+
+    if TOGGLE_PRINT:
+        plt.savefig(f"{OUTPUT_DIR}/pi_3b.pdf")
     else:
         plt.show()
     # -------------------------------------------
@@ -174,37 +175,37 @@ def visualize_pi(initial_design, init=None):
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
-    boplot.plot_objective_function(ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
+    # boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
     boplot.darken_graph(y=ymin, ax=ax)
 
     vcurve_x, vcurve_y, mu = boplot.draw_vertical_normal(gp=gp, incumbenty=ymin, ax=ax, xtest=candidate, xscale=2.0, yscale=1.0)
 
     ann_x = candidate + 0.5 * (np.max(vcurve_x) - candidate) / 2
-    ann_y = mu - 0.25
+    ann_y = ymin - 0.25
 
     arrow_x = ann_x
     arrow_y = ann_y - 3.0
 
-    label = "{:.2f}".format(candidate)
+    # prob = "{:.2f}".format(candidate)
 
     ax.annotate(
-        s=r'$PI^{(t)}(%s)$' % label, xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
-        arrowprops={'arrowstyle': 'fancy'},
+        s=r'$PI^{(t)} \approx 0.5$', xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+        arrowprops={'arrowstyle': 'fancy', 'shrinkA': 20.0},
         weight='heavy', color='darkgreen', zorder=15
     )
 
     ax.legend().set_zorder(20)
     ax.set_xlabel(labels['xlabel'])
-    ax.set_ylabel(labels['gp_ylabel'])
-    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+    # ax.set_ylabel(labels['gp_ylabel'])
+    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
 
     ax.legend().remove()
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_4.pdf")
+        plt.savefig(f"{OUTPUT_DIR}/pi_4.pdf")
     else:
         plt.show()
     # -------------------------------------------
@@ -216,8 +217,8 @@ def visualize_pi(initial_design, init=None):
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
-    boplot.plot_objective_function(ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
+    # boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
     boplot.darken_graph(y=ymin, ax=ax)
 
@@ -228,16 +229,16 @@ def visualize_pi(initial_design, init=None):
     )
 
     ann_x = candidate + 0.5 * (np.max(vcurve_x) - candidate) / 2
-    ann_y = mu - 0.25
+    ann_y = ymin - 0.25
 
     arrow_x = ann_x
     arrow_y = ann_y - 3.0
 
-    label = "{:.2f}".format(candidate)
+    # prob = "{:.2f}".format(candidate)
 
     ax.annotate(
-        s=r'$PI^{(t)}(%s)$' % label, xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
-        arrowprops={'arrowstyle': 'fancy'},
+        s=r'$PI^{(t)} \approx 0.5$', xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+        arrowprops={'arrowstyle': 'fancy', 'shrinkA': 20.0},
         weight='heavy', color='darkgreen', zorder=15
     )
 
@@ -247,28 +248,29 @@ def visualize_pi(initial_design, init=None):
         xscale=2.0, yscale=1.0
     )
 
-    ann_x = candidate + 0.5 * (np.max(vcurve_x) - candidate) / 2
-    ann_y = mu
+    # ann_x = candidate + 0.5 * (np.max(vcurve_x) - candidate) / 2
+    ann_x = candidate
+    ann_y = ymin - 0.25
 
-    arrow_x = ann_x
+    arrow_x = ann_x + 0.5
     arrow_y = ann_y - 3.0
 
-    label = "{:.2f}".format(candidate)
+    # prob = "{:.2f}".format(candidate)
 
-    ax.annotate(s=r'$PI^{(t)}(%s)$' % label, xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
-                arrowprops={'arrowstyle': 'fancy'},
+    ax.annotate(s=r'$PI^{(t)} \approx 0.0$', xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+                arrowprops={'arrowstyle': 'fancy', 'shrinkA': 20.0},
                 weight='heavy', color='darkgreen', zorder=15)
 
     ax.legend().set_zorder(20)
     ax.set_xlabel(labels['xlabel'])
-    ax.set_ylabel(labels['gp_ylabel'])
-    ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+    # ax.set_ylabel(labels['gp_ylabel'])
+    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
 
     ax.legend().remove()
 
     plt.tight_layout()
     if TOGGLE_PRINT:
-        plt.savefig("pi_5.pdf")
+        plt.savefig(f"{OUTPUT_DIR}/pi_5.pdf")
     else:
         plt.show()
     # -------------------------------------------
