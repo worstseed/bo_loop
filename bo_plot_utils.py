@@ -73,7 +73,8 @@ def annotate_y_edge(label, xy, ax, align='right'):
     textxy = (x, xy[1] - (ax.get_ylim()[1] - ax.get_ylim()[0]) / 10)
     # logging.info("Placing text at {}".format(textxy))
 
-    ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment='center', zorder=10)
+    ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment='center',
+                zorder=zorders['annotations_normal'])
 
 
 def annotate_x_edge(label, xy, ax, align='bottom', offset_param=1.5):
@@ -97,7 +98,8 @@ def annotate_x_edge(label, xy, ax, align='bottom', offset_param=1.5):
     textxy = (xy[0] - 0.1, y)
     # logging.info("Placing text at {}".format(textxy))
 
-    ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment='right', zorder=10)
+    ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment='right',
+                zorder=zorders['annotations_normal'])
 
 
 def get_plot_domain(precision=None, custom_x=None):
@@ -149,7 +151,8 @@ def mark_current_incumbent(x, y, invert_y=False, ax=None):
 
     if invert_y:
         y = -y
-    ax.scatter(x, y, color=colors['current_incumbent'], marker='v', label=labels['incumbent'], zorder=12)
+    ax.scatter(x, y, color=colors['current_incumbent'], marker='v', label=labels['incumbent'],
+               zorder=zorders['incumbent'])
 
 
 def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=None):
@@ -185,10 +188,11 @@ def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, hig
             color=colors['highlighted_observations'],
             marker='X',
             label=highlight_label,
-            zorder=11
+            zorder=zorders['datapoints'] + 1
         )
         mask[highlight_datapoint] = 0
-    ax.scatter(X_[mask, 0], Y_[mask, 0], color=colors['observations'], marker='X', label="Observations", zorder=10)
+    ax.scatter(X_[mask, 0], Y_[mask, 0], color=colors['observations'], marker='X', label="Observations",
+                zorder=zorders['datapoints'])
 
     return ax if return_flag else None
 
@@ -235,7 +239,7 @@ def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False,
             color=colors['highlighted_observations'],
             marker='X',
             label='Sample Minima',
-            zorder=11
+            zorder=zorders['datapoints']
         )
 
     return ax if return_flag else None
@@ -462,7 +466,9 @@ def darken_graph(y, ax):
     rectheight = ax.get_ylim()[1] - y
     rect = Rectangle(
         recto, rectwidth, rectheight,
-        fill=True, alpha=0.75, facecolor='white', zorder=8, linewidth=rcParams['lines.linewidth'], edgecolor='grey'
+        fill=True, alpha=0.75, facecolor='white',
+        zorder=zorders['zone_of_imp'], linewidth=rcParams['lines.linewidth'],
+        edgecolor='grey'
     )
     ax.add_patch(rect)
     return
@@ -497,11 +503,13 @@ def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, step=0.01,
     # vcurve_x = norm_x + xtest
     # vcurve_y = norm_y + mu
 
-    ax.plot(xtest, mu, color='red', marker='o', markersize=20, zorder=14)
-    ax.vlines(xtest, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors='black', linestyles='dashed', zorder=9)
-    ax.plot(vcurve_x, vcurve_y, color='black', zorder=9)
+    ax.plot(xtest, mu, color='red', marker='o', markersize=20, zorder=zorders['annotations_high'])
+    ax.vlines(xtest, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors='black', linestyles='dashed',
+              zorder=zorders['zone_of_imp'] + 1)
+    ax.plot(vcurve_x, vcurve_y, color='black', zorder=zorders['zone_of_imp'] + 1)
     fill_args = np.where(vcurve_y < incumbenty)
-    ax.fill_betweenx(vcurve_y[fill_args], xtest, vcurve_x[fill_args], alpha=1.0, facecolor='darkgreen', zorder=14)
+    ax.fill_betweenx(vcurve_y[fill_args], xtest, vcurve_x[fill_args], alpha=1.0, facecolor='darkgreen',
+                     zorder=zorders['annotations_high'] - 5)
 
     # ann_x = xtest
     # ann_y = mu
