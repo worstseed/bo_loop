@@ -4,36 +4,53 @@ import logging
 
 from bo_configurations import *
 from matplotlib import rcParams
+from matplotlib import rc
 from matplotlib.patches import Rectangle
 
 from scipy.stats import norm
 
-rcParams["font.size"] = 32
-rcParams["axes.linewidth"] = 3
-rcParams["lines.linewidth"] = 4
-rcParams["lines.markersize"] = 26
-rcParams["legend.loc"] = "lower right"
-rcParams["legend.fontsize"] = 26
-rcParams['axes.labelsize'] = 36
-rcParams['xtick.minor.pad'] = 30.0
-#rcParams['ytick.minor.pad'] = -50.0
+RC_FONT = {
+    "size": 32
+}
+rc("font", **RC_FONT)
 
+RC_AXES = {
+    "linewidth": 3,
+    "labelsize": 36
+}
+rc("axes", **RC_AXES)
+
+RC_LINES = {
+    "linewidth": 4,
+    "markersize": 26
+}
+rc("lines", **RC_LINES)
+
+RC_LEGEND = {
+    "loc": "lower right",
+    "fontsize": 26
+}
+rc("legend", **RC_LEGEND)
+rc("xtick.minor", pad=30.0)
 
 
 def enable_printing():
-    rcParams["figure.figsize"] = (21, 9)
-    rcParams["figure.dpi"] = 300.0
-    rcParams["savefig.dpi"] = 'figure'
-    rcParams["savefig.format"] = 'pdf'
+    rc("figure", figsize=(21, 9), dpi=300.0)
+    rc("savefig", dpi='figure', format='pdf', directory='./outputs')
+
 
 def enable_onscreen_display():
-    rcParams["figure.figsize"] = (16, 9)
-    rcParams["figure.dpi"] = 100.0
+    rc("figure", figsize=(16, 9), dpi=100.0)
 
 
 def set_rcparams(**kwargs):
+    '''***DEPTRECATED***'''
     for key, value in kwargs.items():
         rcParams[key] = value
+
+
+def set_rc(group, **kwargs):
+    rc(group, **kwargs)
 
 
 def annotate_y_edge(label, xy, ax, align='right'):
