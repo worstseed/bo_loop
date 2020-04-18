@@ -2,6 +2,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import argparse
 import logging
+import os.path
 from sklearn.gaussian_process import GaussianProcessRegressor as GPR
 from sklearn.gaussian_process.kernels import Matern
 
