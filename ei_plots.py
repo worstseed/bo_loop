@@ -72,15 +72,6 @@ def visualize_ei(initial_design, init=None):
     :return: None
     """
 
-    # 1. Plot GP fit on initial dataset
-    # 2. Mark current incumbent
-    # 3. Mark Zone of Probable Improvement
-    # 4. Mark Hypothetical Real cost of a random configuration
-    # 5. Display I(lambda)
-    # 6. Display Vertical Normal Distribution
-
-    # boplot.set_rcparams(**{'legend.loc': 'lower left'})
-
     logging.debug("Visualizing EI with initial design {} and init {}".format(initial_design, init))
     # Initialize dummy dataset
     x, y = initialize_dataset(initial_design=initial_design, init=init)
@@ -99,194 +90,65 @@ def visualize_ei(initial_design, init=None):
     logging.debug("Model fit to dataset.\nOriginal Inputs: {0}\nOriginal Observations: {1}\n"
                   "Predicted Means: {2}\nPredicted STDs: {3}".format(x, y, *(gp.predict(x, return_std=True))))
 
+    # --------------------------------------------
+
+    def draw_basic_figure(obj_func=False):
+        fig, ax = plt.subplots(1, 1, squeeze=True)
+        ax.set_xlim(bounds["x"])
+        ax.set_ylim(bounds["gp_y"])
+        ax.grid()
+        boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
+        if obj_func:
+            boplot.plot_objective_function(ax=ax)
+        boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
+
+        return fig, ax
+
+
+    def perform_finishing_tasks(ax, filename="", remove_legend=True):
+
+        ax.legend().set_zorder(zorders['annotations_high'])
+        ax.set_xlabel(labels['xlabel'])
+
+        if remove_legend:
+            ax.legend().remove()
+
+        plt.tight_layout()
+        if TOGGLE_PRINT:
+            plt.savefig(f"{OUTPUT_DIR}/{filename}")
+        else:
+            plt.show()
+
     # 1. Plot GP fit on initial dataset
     # -------------Plotting code -----------------
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    ax.set_xlim(bounds["x"])
-    ax.set_ylim(bounds["gp_y"])
-    ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
-    boplot.plot_objective_function(ax=ax)
-    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, highlight_datapoint=None, highlight_label=None, ax=ax)
+    fig, ax = draw_basic_figure(obj_func=True)
 
-    ax.legend().set_zorder(zorders['annotations_high'])
-    ax.set_xlabel(labels['xlabel'])
-    # ax.set_ylabel(labels['gp_ylabel'])
-    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    plt.tight_layout()
-    if TOGGLE_PRINT:
-        plt.savefig(f"{OUTPUT_DIR}/ei_1.pdf")
-    else:
-        plt.show()
+    perform_finishing_tasks(
+        ax=ax,
+        filename="ei_1.pdf",
+        remove_legend=False
+    )
     # -------------------------------------------
 
-    # 2. Mark current incumbent
+    def draw_basic_figure_plus_zone():
+        fig, ax = draw_basic_figure(obj_func=False)
+        boplot.darken_graph(y=ymin, ax=ax)
+
+        return fig, ax
+
+
+    # 2. Mark Zone of Probable Improvement
     # -------------Plotting code -----------------
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    ax.set_xlim(bounds["x"])
-    ax.set_ylim(bounds["gp_y"])
-    ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
-    boplot.plot_objective_function(ax=ax)
-    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
+    fig, ax = draw_basic_figure_plus_zone()
 
-    ax.legend().set_zorder(zorders['annotations_high'])
-    ax.set_xlabel(labels['xlabel'])
-    # ax.set_ylabel(labels['gp_ylabel'])
-    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    plt.tight_layout()
-    if TOGGLE_PRINT:
-        plt.savefig(f"{OUTPUT_DIR}/ei_2.pdf")
-    else:
-        plt.show()
-    # -------------------------------------------
-
-    # 3. Mark Zone of Probable Improvement
-    # -------------Plotting code -----------------
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    ax.set_xlim(bounds["x"])
-    ax.set_ylim(bounds["gp_y"])
-    ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
-    boplot.plot_objective_function(ax=ax)
-    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
-    boplot.darken_graph(y=ymin, ax=ax)
-
-    ax.legend().set_zorder(zorders['annotations_high'])
-    ax.set_xlabel(labels['xlabel'])
-    # ax.set_ylabel(labels['gp_ylabel'])
-    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    ax.legend().remove()
-
-    plt.tight_layout()
-    if TOGGLE_PRINT:
-        plt.savefig(f"{OUTPUT_DIR}/ei_3.pdf")
-    else:
-        plt.show()
-    # -------------------------------------------
-
-    # 4. Forget the underlying objective function
-    # -------------------------------------------
-
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    ax.set_xlim(bounds["x"])
-    ax.set_ylim(bounds["gp_y"])
-    ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
-    # boplot.plot_objective_function(ax=ax)
-    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
-    boplot.darken_graph(y=ymin, ax=ax)
-
-    ax.set_xlabel(labels['xlabel'])
-    # ax.set_ylabel(labels['gp_ylabel'])
-    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    plt.tight_layout()
-    if TOGGLE_PRINT:
-        plt.savefig(f"{OUTPUT_DIR}/ei_4.pdf")
-    else:
-        plt.show()
-
-    # -------------------------------------------
-
-    # 5. Mark Hypothetical Real cost of a random configuration
-    # -------------------------------------------
-
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    ax.set_xlim(bounds["x"])
-    ax.set_ylim(bounds["gp_y"])
-    ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
-    # boplot.plot_objective_function(ax=ax)
-    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
-    boplot.darken_graph(y=ymin, ax=ax)
-
-    ax.legend().set_zorder(zorders['annotations_high'])
-    ax.set_xlabel(labels['xlabel'])
-    # ax.set_ylabel(labels['gp_ylabel'])
-    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    candidate1 = 4.5
-    candidate2 = 11
-    cost = -1.5
-    boplot.highlight_configuration(
-        x=np.array([candidate1]),
-        label=[r'$\lambda_1$'],
-        lloc='bottom',
-        ax=ax
+    perform_finishing_tasks(
+        ax=ax,
+        filename="ei_2.pdf",
+        remove_legend=True
     )
-    boplot.highlight_output(
-        y=np.array([cost, ymin]),
-        label=['c', '$c_{inc}$'],
-        lloc='left',
-        ax=ax
-    )
-    # boplot.annotate_y_edge(label=r'c', xy=(candidate, cost), align='left', ax=ax)
-
-    ax.legend().remove()
-
-    plt.tight_layout()
-    if TOGGLE_PRINT:
-        plt.savefig(f"{OUTPUT_DIR}/ei_5.pdf")
-    else:
-        plt.show()
-
     # -------------------------------------------
 
-    # 6. Display I(lambda)
-    # -------------------------------------------
-
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    ax.set_xlim(bounds["x"])
-    ax.set_ylim(bounds["gp_y"])
-    ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
-    # boplot.plot_objective_function(ax=ax)
-    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
-    boplot.darken_graph(y=ymin, ax=ax)
-
-    ax.legend().set_zorder(zorders['annotations_high'])
-    ax.set_xlabel(labels['xlabel'])
-    # # ax.set_ylabel(labels['gp_ylabel'])
-    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    boplot.highlight_configuration(
-        x=np.array([candidate1]),
-        label=[r'$\lambda_1$'],
-        lloc='bottom',
-        ax=ax
-    )
-    boplot.highlight_output(
-        y=np.array([cost, ymin]),
-        label=['c', '$c_{inc}$'],
-        lloc='left',
-        ax=ax
-    )
-    # boplot.annotate_y_edge(label=r'c', xy=(candidate, cost), align='left', ax=ax)
-
-    # xmid = (x[ymin_arg][0] + candidate) / 2.
-    xmid = (candidate1 + candidate2) / 2
-    ax.annotate(s='', xy=(xmid, cost), xytext=(xmid, ymin),
-                 arrowprops={'arrowstyle': 'simple',})
-
-    # textx = xmid + (ax.get_xlim()[1] - ax.get_xlim()[0]) / 40
-    # ax.text(textx, (ymin + cost) / 2, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
-    ax.text(xmid - 1.0, cost - 0.75, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
-
-    ax.legend().remove()
-
-    plt.tight_layout()
-    if TOGGLE_PRINT:
-        plt.savefig(f"{OUTPUT_DIR}/ei_6.pdf")
-    else:
-        plt.show()
-
-    # -------------------------------------------
-
-    def draw_distribution_for_candidate(candidate, target_cost):
+    def draw_distribution_for_candidate(ax, candidate, target_cost):
         vcurve_x, vcurve_y, mu = boplot.draw_vertical_normal(
             gp=gp, incumbenty=ymin, ax=ax, xtest=candidate,
             xscale=2.0, yscale=1.0, fill=False, draw_domain=False
@@ -298,236 +160,138 @@ def visualize_ei(initial_design, init=None):
         ax.fill_betweenx(ann_y, candidate, ann_x, alpha=1.0, facecolor='darkgreen',
                          zorder=zorders['annotations_high'] - 5)
 
-    # 7. Display Vertical Normal Distribution
+    def draw_final_figure(sample_cost, vis_confs, inc_eq_loc_x, draw_improvement=True, draw_normals=True):
+        fig, ax = draw_basic_figure_plus_zone()
+
+        boplot.highlight_configuration(
+            x=np.array(vis_confs),
+            label=[r'$\lambda_%d$' % (idx + 1) for idx in range(len(vis_confs))],
+            lloc='bottom',
+            ax=ax
+        )
+        boplot.highlight_output(
+            y=np.array([sample_cost, ymin]),
+            label=['c', '$c_{inc}$'],
+            lloc='left',
+            ax=ax
+        )
+        # boplot.annotate_y_edge(label=r'c', xy=(lambda, cost), align='left', ax=ax)
+
+        if draw_improvement:
+            ax.annotate(s='', xy=(inc_eq_loc_x, sample_cost), xytext=(inc_eq_loc_x, ymin),
+                        arrowprops={'arrowstyle': 'simple', })
+
+            ax.text(inc_eq_loc_x - 1.0, sample_cost - 1.0, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
+
+        if draw_normals:
+            for conf in vis_confs:
+                draw_distribution_for_candidate(ax=ax, candidate=conf, target_cost=sample_cost)
+
+        return fig, ax
+
+    # 3. Mark Hypothetical Real cost of a random configuration
     # -------------------------------------------
 
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    ax.set_xlim(bounds["x"])
-    ax.set_ylim(bounds["gp_y"])
-    ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
-    # boplot.plot_objective_function(ax=ax)
-    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
-    boplot.darken_graph(y=ymin, ax=ax)
+    candidate1 = 4.5
+    candidate2 = 11
 
-    ax.legend().set_zorder(zorders['annotations_high'])
-    ax.set_xlabel(labels['xlabel'])
-    # ax.set_ylabel(labels['gp_ylabel'])
-    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    boplot.highlight_configuration(
-        x=np.array([candidate1]),
-        label=[r'$\lambda_1$'],
-        lloc='bottom',
-        ax=ax
+    fig, ax = draw_final_figure(
+        sample_cost=-1.5,
+        vis_confs=[candidate1],
+        inc_eq_loc_x=None,
+        draw_improvement=False,
+        draw_normals=False
     )
-    boplot.highlight_output(
-        y=np.array([cost, ymin]),
-        label=['c', '$c_{inc}$'],
-        lloc='left',
-        ax=ax
+
+    perform_finishing_tasks(
+        ax=ax,
+        filename="ei_3.pdf",
+        remove_legend=True
     )
-    # boplot.annotate_y_edge(label=r'c', xy=(candidate, cost), align='left', ax=ax)
-
-    # xmid = (x[ymin_arg][0] + candidate) / 2.
-    xmid = (candidate1 + candidate2) / 2
-    ax.annotate(s='', xy=(xmid, cost), xytext=(xmid, ymin),
-                 arrowprops={'arrowstyle': 'simple',})
-
-    # textx = xmid + (ax.get_xlim()[1] - ax.get_xlim()[0]) / 40
-    # ax.text(textx, (ymin + cost) / 2, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
-    ax.text(xmid - 1.0, cost - 0.75, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
-
-    draw_distribution_for_candidate(candidate=candidate1, target_cost=cost)
-
-    # ann_x = candidate + 0.3 * (np.max(vcurve_x) - candidate) / 2
-    # ann_y = ymin - (mu - ymin) / 2
-
-    # arrow_x = ann_x + 0.5
-    # arrow_y = ann_y - 3.0
-
-    # label = "{:.2f}".format(candidate)
-    # label = '\lambda'
-
-    # ax.annotate(
-    #     s=r'$PI^{(t)}(%s)$' % label, xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
-    #     arrowprops={'arrowstyle': 'fancy'},
-    #     weight='heavy', color='darkgreen', zorder=zorders['annotations_high']
-    # )
-
-    ax.legend().remove()
-
-    plt.tight_layout()
-    if TOGGLE_PRINT:
-        plt.savefig(f"{OUTPUT_DIR}/ei_7.pdf")
-    else:
-        plt.show()
-
     # -------------------------------------------
 
-
-    # 8. Display improvement for c_1 with two configurations
+    # 4. Display I(lambda)
     # -------------------------------------------
 
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    ax.set_xlim(bounds["x"])
-    ax.set_ylim(bounds["gp_y"])
-    ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
-    # boplot.plot_objective_function(ax=ax)
-    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
-    boplot.darken_graph(y=ymin, ax=ax)
-
-    ax.legend().set_zorder(zorders['annotations_high'])
-    ax.set_xlabel(labels['xlabel'])
-    # ax.set_ylabel(labels['gp_ylabel'])
-    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    cost = -1.5
-    boplot.highlight_configuration(
-        x=np.array([candidate1, candidate2]),
-        label=[r'$\lambda_1$', r'$\lambda_2$'],
-        lloc='bottom',
-        ax=ax
+    fig, ax = draw_final_figure(
+        sample_cost=-1.5,
+        vis_confs=[candidate1],
+        inc_eq_loc_x=(candidate1 + candidate2) / 2,
+        draw_improvement=True,
+        draw_normals=False
     )
-    boplot.highlight_output(
-        y=np.array([cost, ymin]),
-        label=['c', '$c_{inc}$'],
-        lloc='left',
-        ax=ax
+
+    perform_finishing_tasks(
+        ax=ax,
+        filename="ei_4.pdf",
+        remove_legend=True
     )
-    # boplot.annotate_y_edge(label=r'c', xy=(candidate, cost), align='left', ax=ax)
+    # -------------------------------------------
 
-    # xmid = (x[ymin_arg][0] + candidate) / 2.
-    xmid = (candidate1 + candidate2) / 2
-    ax.annotate(s='', xy=(xmid, cost), xytext=(xmid, ymin),
-                 arrowprops={'arrowstyle': 'simple',})
+    # 5. Display Vertical Normal Distribution
+    # -------------------------------------------
 
-    # textx = xmid + (ax.get_xlim()[1] - ax.get_xlim()[0]) / 40
-    # ax.text(textx, (ymin + cost) / 2, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
-    ax.text(xmid - 1.0, cost - 0.75, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
+    fig, ax = draw_final_figure(
+        sample_cost=-1.5,
+        vis_confs=[candidate1],
+        inc_eq_loc_x=(candidate1 + candidate2) / 2
+    )
 
-    draw_distribution_for_candidate(candidate=candidate1, target_cost=cost)
-    draw_distribution_for_candidate(candidate=candidate2, target_cost=cost)
+    perform_finishing_tasks(
+        ax=ax,
+        filename="ei_5.pdf",
+        remove_legend=True
+    )
+    # -------------------------------------------
 
-    ax.legend().remove()
+    # 6. Display improvement for c_1 with two configurations
+    # -------------------------------------------
 
-    plt.tight_layout()
-    if TOGGLE_PRINT:
-        plt.savefig(f"{OUTPUT_DIR}/ei_8.pdf")
-    else:
-        plt.show()
+    fig, ax = draw_final_figure(
+        sample_cost=-1.5,
+        vis_confs=[candidate1, candidate2],
+        inc_eq_loc_x=(candidate1 + candidate2) / 2
+    )
 
+    perform_finishing_tasks(
+        ax=ax,
+        filename="ei_6.pdf",
+        remove_legend=True
+    )
     # -------------------------------------------
 
 
-    # 9. Display improvement for c_2 with two configurations
+    # 7. Display improvement for c_2 with two configurations
     # -------------------------------------------
 
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    ax.set_xlim(bounds["x"])
-    ax.set_ylim(bounds["gp_y"])
-    ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
-    # boplot.plot_objective_function(ax=ax)
-    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
-    boplot.darken_graph(y=ymin, ax=ax)
-
-    ax.legend().set_zorder(zorders['annotations_high'])
-    ax.set_xlabel(labels['xlabel'])
-    # ax.set_ylabel(labels['gp_ylabel'])
-    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    cost = -2.5
-    boplot.highlight_configuration(
-        x=np.array([candidate1, candidate2]),
-        label=[r'$\lambda_1$', r'$\lambda_2$'],
-        lloc='bottom',
-        ax=ax
+    fig, ax = draw_final_figure(
+        sample_cost=-2.5,
+        vis_confs=[candidate1, candidate2],
+        inc_eq_loc_x=(candidate1 + candidate2) / 2
     )
-    boplot.highlight_output(
-        y=np.array([cost, ymin]),
-        label=['c', '$c_{inc}$'],
-        lloc='left',
-        ax=ax
+
+    perform_finishing_tasks(
+        ax=ax,
+        filename="ei_7.pdf",
+        remove_legend=True
     )
-    # boplot.annotate_y_edge(label=r'c', xy=(candidate, cost), align='left', ax=ax)
-
-    # xmid = (x[ymin_arg][0] + candidate) / 2.
-    xmid = (candidate1 + candidate2) / 2
-    ax.annotate(s='', xy=(xmid, cost), xytext=(xmid, ymin),
-                 arrowprops={'arrowstyle': 'simple',})
-
-    # textx = xmid + (ax.get_xlim()[1] - ax.get_xlim()[0]) / 40
-    # ax.text(textx, (ymin + cost) / 2, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
-    ax.text(xmid - 1.0, cost - 0.75, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
-
-    draw_distribution_for_candidate(candidate=candidate1, target_cost=cost)
-    draw_distribution_for_candidate(candidate=candidate2, target_cost=cost)
-
-    ax.legend().remove()
-
-    plt.tight_layout()
-    if TOGGLE_PRINT:
-        plt.savefig(f"{OUTPUT_DIR}/ei_9.pdf")
-    else:
-        plt.show()
-
     # -------------------------------------------
 
 
-    # 10. Display improvement for c_3 with two configurations
+    # 8. Display improvement for c_3 with two configurations
     # -------------------------------------------
 
-    fig, ax = plt.subplots(1, 1, squeeze=True)
-    ax.set_xlim(bounds["x"])
-    ax.set_ylim(bounds["gp_y"])
-    ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
-    # boplot.plot_objective_function(ax=ax)
-    boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
-    boplot.darken_graph(y=ymin, ax=ax)
-
-    ax.legend().set_zorder(zorders['annotations_high'])
-    ax.set_xlabel(labels['xlabel'])
-    # ax.set_ylabel(labels['gp_ylabel'])
-    # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
-
-    cost = -3
-    boplot.highlight_configuration(
-        x=np.array([candidate1, candidate2]),
-        label=[r'$\lambda_1$', r'$\lambda_2$'],
-        lloc='bottom',
-        ax=ax
+    fig, ax = draw_final_figure(
+        sample_cost=-3.0,
+        vis_confs=[candidate1, candidate2],
+        inc_eq_loc_x=(candidate1 + candidate2) / 2
     )
-    boplot.highlight_output(
-        y=np.array([cost, ymin]),
-        label=['c', '$c_{inc}$'],
-        lloc='left',
-        ax=ax
+
+    perform_finishing_tasks(
+        ax=ax,
+        filename="ei_8.pdf",
+        remove_legend=True
     )
-    # boplot.annotate_y_edge(label=r'c', xy=(candidate, cost), align='left', ax=ax)
-
-    # xmid = (x[ymin_arg][0] + candidate) / 2.
-    xmid = (candidate1 + candidate2) / 2
-    ax.annotate(s='', xy=(xmid, cost), xytext=(xmid, ymin),
-                 arrowprops={'arrowstyle': 'simple',})
-
-    # textx = xmid + (ax.get_xlim()[1] - ax.get_xlim()[0]) / 40
-    # ax.text(textx, (ymin + cost) / 2, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
-    ax.text(xmid - 1.0, cost - 0.75, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
-
-    draw_distribution_for_candidate(candidate=candidate1, target_cost=cost)
-    draw_distribution_for_candidate(candidate=candidate2, target_cost=cost)
-
-    ax.legend().remove()
-
-    plt.tight_layout()
-    if TOGGLE_PRINT:
-        plt.savefig(f"{OUTPUT_DIR}/ei_10.pdf")
-    else:
-        plt.show()
-
     # -------------------------------------------
 
 

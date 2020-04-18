@@ -10,7 +10,7 @@ from matplotlib.patches import Rectangle
 from scipy.stats import norm
 
 RC_FONT = {
-    "size": 32
+    "size": 46
 }
 rc("font", **RC_FONT)
 
@@ -31,7 +31,8 @@ RC_LEGEND = {
     "fontsize": 26
 }
 rc("legend", **RC_LEGEND)
-rc("xtick.minor", pad=30.0)
+rc(("xtick.minor", "ytick.minor"), pad=10.0)
+rc(("xtick", "ytick"), labelsize=32.0)
 
 # To be implemented when needed in order to keep track of multiple highlighted minor ticks
 highlighted_yticks = []
@@ -385,6 +386,7 @@ def highlight_configuration(x, label=None, lloc='bottom', ax=None, disable_ticks
     )
 
     if disable_ticks:
+        rc("xtick.minor", visibile=False)
         highlighted_xticks = []
         return ax if return_flag else None
 
@@ -455,6 +457,7 @@ def highlight_output(y, label=None, lloc='left', ax=None, disable_ticks=False, a
         )
 
     if disable_ticks:
+        rc("ytick.minor", visibile=False)
         highlighted_yticks = []
         return ax if return_flag else None
 
@@ -545,12 +548,12 @@ def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, step=0.01, xscale=1.0, y
     ax.plot(xtest, mu, color='red', marker='o', markersize=20, zorder=zorders['annotations_high'])
     if draw_domain:
         ax.vlines(xtest, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors='black', linestyles='dashed',
-              zorder=zorders['zone_of_imp'] + 1)
+                  zorder=zorders['zone_of_imp'] + 1)
     ax.plot(vcurve_x, vcurve_y, color='black', zorder=zorders['zone_of_imp'] + 1)
     if fill:
         fill_args = np.where(vcurve_y < incumbenty)
         ax.fill_betweenx(vcurve_y[fill_args], xtest, vcurve_x[fill_args], alpha=1.0, facecolor='darkgreen',
-                     zorder=zorders['annotations_high'] - 5)
+                         zorder=zorders['annotations_high'] - 5)
 
     # ann_x = xtest
     # ann_y = mu
