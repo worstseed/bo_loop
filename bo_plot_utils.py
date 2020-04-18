@@ -386,7 +386,7 @@ def highlight_configuration(x, label=None, lloc='bottom', ax=None, disable_ticks
     )
 
     if disable_ticks:
-        rc("xtick.minor", visibile=False)
+        rc("xtick.minor", visible=False)
         highlighted_xticks = []
         return ax if return_flag else None
 
@@ -457,7 +457,7 @@ def highlight_output(y, label=None, lloc='left', ax=None, disable_ticks=False, a
         )
 
     if disable_ticks:
-        rc("ytick.minor", visibile=False)
+        rc("ytick.minor", visible=False)
         highlighted_yticks = []
         return ax if return_flag else None
 
