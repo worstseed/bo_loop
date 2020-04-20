@@ -511,7 +511,7 @@ def darken_graph(y, ax):
         recto, rectwidth, rectheight,
         fill=True, alpha=0.75, facecolor='white',
         zorder=zorders['zone_of_imp'], linewidth=rcParams['lines.linewidth'],
-        edgecolor='grey'
+        edgecolor=None # 'grey'
     )
     ax.add_patch(rect)
     return

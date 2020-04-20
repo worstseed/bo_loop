@@ -67,5 +67,6 @@ zorders = {
     'annotations_normal': 40,
     'datapoints': 41,
     'incumbent': 42,
-    'annotations_high': 60
+    'annotations_high': 60,
+    'legend': 100
 }

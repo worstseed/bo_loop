@@ -181,11 +181,19 @@ def visualize_ei(initial_design, init=None):
             ax.annotate(s='', xy=(inc_eq_loc_x, sample_cost), xytext=(inc_eq_loc_x, ymin),
                         arrowprops={'arrowstyle': 'simple', })
 
-            ax.text(inc_eq_loc_x - 1.0, sample_cost - 1.0, r'$I^{(t)}=c_{inc}-c(\lambda)$', weight='heavy')
+            ax.text(inc_eq_loc_x - 1.0, sample_cost - 1.0, r'$I_c=c_{inc}-c$', weight='heavy')
 
         if draw_normals:
-            for conf in vis_confs:
+            for idx in range(len(vis_confs)):
+                conf = vis_confs[idx]
                 draw_distribution_for_candidate(ax=ax, candidate=conf, target_cost=sample_cost)
+
+                ax.annotate(
+                    s=r"$p(c|\lambda_%d)$" % (idx+1), xy=(conf, sample_cost), xytext=(conf-1.8, sample_cost - 1.5),
+                    arrowprops={'arrowstyle': 'fancy', 'shrinkA': 20.0},
+                    weight='heavy', color='darkgreen', zorder=zorders['annotations_high']
+                )
+
 
         return fig, ax
 
