@@ -101,6 +101,12 @@ def visualize_ei(initial_design, init=None):
         if obj_func:
             boplot.plot_objective_function(ax=ax)
         boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
+        boplot.highlight_output(
+            y=np.array([ymin]),
+            label=['$c_{inc}$'],
+            lloc='left',
+            ax=ax
+        )
 
         return fig, ax
 
