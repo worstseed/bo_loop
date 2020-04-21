@@ -143,13 +143,25 @@ def visualize_ei(initial_design, init=None):
         return fig, ax
 
 
-    # 2. Mark Zone of Probable Improvement
+    # 2a. Mark Zone of Probable Improvement + Display Legend
     # -------------Plotting code -----------------
     fig, ax = draw_basic_figure_plus_zone()
 
     perform_finishing_tasks(
         ax=ax,
-        filename="ei_2.pdf",
+        filename="ei_2a.pdf",
+        remove_legend=False
+    )
+    # -------------------------------------------
+
+
+    # 2b. Mark Zone of Probable Improvement + Remove Legend
+    # -------------Plotting code -----------------
+    fig, ax = draw_basic_figure_plus_zone()
+
+    perform_finishing_tasks(
+        ax=ax,
+        filename="ei_2b.pdf",
         remove_legend=True
     )
     # -------------------------------------------

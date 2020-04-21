@@ -19,8 +19,9 @@ SEED = None
 TOGGLE_PRINT = False
 INIT_X_PRESENTATION = [2.5, 4, 6, 7, 8]
 
-labels["xlabel"] = "$\lambda'$"
-labels["gp_ylabel"] = "$c(\lambda')$"
+labels["xlabel"] = "$\lambda$"
+# colors['highlighted_observations'] = 'red'
+# labels["gp_ylabel"] = "$c(\lambda')$"
 
 def initialize_dataset(initial_design, init=None):
     """
@@ -111,21 +112,21 @@ def visualize_look_ahead(initial_design, init=None):
     # Draw Figure 1.
 
     # fig.tight_layout()
-    labels['gp_mean'] = r'Mean - $\mu^{(t)}(\cdot)$'
+    labels['gp_mean'] = r'Mean: $\mu^{(t)}(\cdot)$'
     # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^t$'
 
-    def draw_figure_1(ax):
+    def draw_figure_1(ax, title=''):
         ax.set_xlim(bounds["x"])
         ax.set_ylim(bounds["gp_y"])
         ax.grid()
         boplot.plot_objective_function(ax=ax)
-        boplot.plot_gp(model=gp, confidence_intervals=[1.0], ax=ax, custom_x=x)
+        boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], ax=ax, custom_x=x)
         boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, ax=ax)
 
-        ax.legend()
+        ax.legend().set_zorder(zorders["legend"])
         ax.set_xlabel(labels['xlabel'])
-        ax.set_ylabel(labels['gp_ylabel'])
-        ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')
+        # ax.set_ylabel(labels['gp_ylabel'])
+        ax.set_title(title, loc='left')
 
     if TOGGLE_PRINT:
         fig, ax = plt.subplots(1, 1, squeeze=True)
@@ -134,10 +135,10 @@ def visualize_look_ahead(initial_design, init=None):
         plt.savefig("look_ahead_1.pdf")
 
     fig, ax = plt.subplots(1, 1, squeeze=True)
-    draw_figure_1(ax)
+    draw_figure_1(ax, title='')
     boplot.highlight_configuration(mu_star_t_xy[0], lloc='bottom', ax=ax)
     boplot.highlight_output(mu_star_t_xy[1], label='', lloc='right', ax=ax, fontsize=30)
-    boplot.annotate_y_edge(label=r'${(\mu^*)}^{(t)}$', xy=mu_star_t_xy, align='right', ax=ax)
+    boplot.annotate_y_edge(label=r'${(\mu^*)}^{(t)}$', xy=mu_star_t_xy, align='right', ax=ax, yoffset=1.5)
     ax.legend().remove()
 
     plt.tight_layout()
@@ -151,7 +152,7 @@ def visualize_look_ahead(initial_design, init=None):
     # Draw figure 1-2 transition animation A
 
     fig, ax = plt.subplots(1, 1, squeeze=True)
-    draw_figure_1(ax)
+    draw_figure_1(ax, title='')
     logging.debug("Placing vertical on configuration: {}".format(x_))
     boplot.highlight_configuration(x=x_, label='', lloc='bottom', ax=ax, ha='center')
     boplot.annotate_x_edge(label=r'$\lambda$',xy=(x_, y_), align='bottom', ax=ax)
@@ -168,7 +169,7 @@ def visualize_look_ahead(initial_design, init=None):
     # Draw figure 1-2 transition animation B
 
     fig, ax = plt.subplots(1, 1, squeeze=True)
-    draw_figure_1(ax)
+    draw_figure_1(ax, title='')
     logging.debug("Placing vertical on configuration: {}".format(x_))
     boplot.highlight_configuration(x=x_, label='', lloc='bottom', ax=ax, ha='right')
     boplot.annotate_x_edge(label=r'$\lambda$',xy=(x_, y_), align='bottom', ax=ax)
@@ -180,7 +181,7 @@ def visualize_look_ahead(initial_design, init=None):
         color=colors['highlighted_observations'],
         marker='X',
         label=r"Hypothetical Observation $<\lambda, c(\lambda)>$",
-        zorder=11
+        zorder=zorders['annotations_normal']
     )
 
     plt.tight_layout()
@@ -194,35 +195,35 @@ def visualize_look_ahead(initial_design, init=None):
     # ---------------------------------------
     # Draw Figure 2.
 
-    labels['gp_mean'] = r'Mean - $\mu^{t+1}(\cdot)|_\lambda$'
+    labels['gp_mean'] = r'Mean: $\mu^{(t+1)}(\cdot)|_\lambda$'
     # labels['incumbent'] = r'Incumbent - ${(\mu^*)}^{t+1}|_\lambda$'
 
-    def draw_figure_2(ax):
+    def draw_figure_2(ax, title=''):
         ax.set_xlim(bounds["x"])
         ax.set_ylim(bounds["gp_y"])
         ax.grid()
         boplot.plot_objective_function(ax=ax)
-        boplot.plot_gp(model=gp2, confidence_intervals=[1.0], ax=ax, custom_x=X2_)
+        boplot.plot_gp(model=gp2, confidence_intervals=[1.0, 2.0, 3.0], ax=ax, custom_x=X2_)
         boplot.mark_observations(X_=X2_, Y_=Y2_, highlight_datapoint=np.where(np.isclose(X2_, x_))[0],
                                  mark_incumbent=False,
                                  highlight_label=r"Hypothetical Observation $<\lambda, c(\lambda)>$", ax=ax)
 
-        ax.legend()
+        ax.legend().set_zorder(zorders["legend"])
         ax.set_xlabel(labels['xlabel'])
-        ax.set_ylabel(labels['gp_ylabel'])
-        ax.set_title(r"Visualization of $\mathcal{G}^{(t+1)}|_\lambda$", loc='left')
+        # ax.set_ylabel(labels['gp_ylabel'])
+        ax.set_title(title, loc='left')
 
     if TOGGLE_PRINT:
         fig, ax = plt.subplots(1, 1, squeeze=True)
-        draw_figure_2(ax)
+        draw_figure_2(ax, title=r'$\hat{c}^{(t+1)}|_\lambda$')
         plt.tight_layout()
         plt.savefig("look_ahead_3.pdf")
 
     fig, ax = plt.subplots(1, 1, squeeze=True)
-    draw_figure_2(ax)
+    draw_figure_2(ax, title=r"$\hat{c}^{(t+1)}|_\lambda$")
     boplot.highlight_configuration(mu_star_t1_xy[0], lloc='bottom', ax=ax, ha='right')
     boplot.highlight_output(mu_star_t1_xy[1], label='', lloc='right', ax=ax, fontsize=28)
-    boplot.annotate_y_edge(label=r'${(\mu^*)}^{(t+1)}|_\lambda$', xy=mu_star_t1_xy, align='right', ax=ax)
+    boplot.annotate_y_edge(label=r'${(\mu^*)}^{(t+1)}|_\lambda$', xy=mu_star_t1_xy, align='right', ax=ax, yoffset=1.5)
     ax.legend().remove()
 
     plt.tight_layout()
@@ -253,7 +254,7 @@ def visualize_look_ahead(initial_design, init=None):
         tgp.fit(tX_, tY_)  # fit the model
         tmu_star_t1_xy = get_mu_star(tgp)
 
-        draw_figure_1(ax1)
+        draw_figure_1(ax1, title=r"$\hat{c}^{(t)}$")
 
         logging.debug("Placing vertical on configuration: {}".format(tx_))
 
@@ -263,7 +264,7 @@ def visualize_look_ahead(initial_design, init=None):
             color=colors['highlighted_observations'],
             marker='X',
             label=r"Hypothetical Observation $<\lambda, c(\lambda)>$",
-            zorder=11
+            zorder=zorders["annotations_normal"]
         )
 
         ax1.legend().remove()
@@ -272,15 +273,15 @@ def visualize_look_ahead(initial_design, init=None):
         ax2.set_ylim(bounds["gp_y"])
         ax2.grid()
         boplot.plot_objective_function(ax=ax2)
-        boplot.plot_gp(model=tgp, confidence_intervals=[1.0], ax=ax2, custom_x=tX_)
+        boplot.plot_gp(model=tgp, confidence_intervals=[1.0, 2.0, 3.0], ax=ax2, custom_x=tX_)
         boplot.mark_observations(X_=tX_, Y_=tY_, highlight_datapoint=np.where(np.isclose(tX_, tx_))[0],
                                  mark_incumbent=False,
                                  highlight_label=r"Hypothetical Observation $<\lambda, c(\lambda)>$", ax=ax2)
 
         ax2.legend()
         ax2.set_xlabel(labels['xlabel'])
-        ax2.set_ylabel(labels['gp_ylabel'])
-        ax2.set_title(r"Visualization of $\mathcal{G}^{(t+1)}|_\lambda$", loc='left')
+        # ax2.set_ylabel(labels['gp_ylabel'])
+        ax2.set_title(r"$\hat{c}^{(t+1)}|_\lambda$", loc='left')
 
         ax2.legend().remove()
 
@@ -341,14 +342,14 @@ def visualize_look_ahead(initial_design, init=None):
     fig, (ax1, ax2) = plt.subplots(1, 2, squeeze=True)
     # fig.tight_layout()
     labels['gp_mean'] = r'Mean - $\mu^(t)(\cdot)$'
-    draw_figure_1(ax1)
+    draw_figure_1(ax1, title=r"$\hat{c}^{(t)}$")
     boplot.highlight_output(mu_star_t_xy[1], label='', lloc='right', ax=ax1, fontsize=30)
-    boplot.annotate_y_edge(label='${(\mu^*)}^{(t)}$', xy=mu_star_t_xy, align='right', ax=ax1)
+    boplot.annotate_y_edge(label='${(\mu^*)}^{(t)}$', xy=mu_star_t_xy, align='right', ax=ax1, yoffset=1.5)
     ax1.get_legend().remove()
     labels['gp_mean'] = r'Mean - $\mu^{(t+1)}(\cdot)|_\lambda$'
-    draw_figure_2(ax2)
+    draw_figure_2(ax2, title=r"$\hat{c}^{(t+1)}|_\lambda$")
     boplot.highlight_output(mu_star_t1_xy[1], label='', lloc='right', ax=ax2, fontsize=28)
-    boplot.annotate_y_edge(label='${(\mu^*)}^{(t+1)}|_\lambda$', xy=mu_star_t1_xy, align='left', ax=ax2)
+    boplot.annotate_y_edge(label='${(\mu^*)}^{(t+1)}|_\lambda$', xy=mu_star_t1_xy, align='left', ax=ax2, yoffset=1.5)
     ax2.get_legend().remove()
 
     plt.tight_layout()

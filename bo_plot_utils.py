@@ -58,13 +58,14 @@ def set_rc(group, **kwargs):
     rc(group, **kwargs)
 
 
-def annotate_y_edge(label, xy, ax, align='right'):
+def annotate_y_edge(label, xy, ax, align='right', yoffset=1.0):
     """
     Place an annotation beneath a horizontal bar, between a given point and either of the left or right edges.
     :param label: Text to annotate with.
     :param xy: Given xy-coordinates.
     :param ax: matplotlib.Axes.axes object given by the user
     :param align: 'left' or 'right' (default) edge to use.
+    :param offset: Shifts label position towards the top (negative offset) or bottom (positive offset) from xy.
     :return: None.
     """
 
@@ -75,7 +76,7 @@ def annotate_y_edge(label, xy, ax, align='right'):
 
     # textxy = ax.transData.transform([x, xy[1]])
     # textxy = ax.transData.inverted().transform((textxy[0], textxy[1] - 2 * rcParams["font.size"]))
-    textxy = (x, xy[1] - (ax.get_ylim()[1] - ax.get_ylim()[0]) / 10)
+    textxy = (x, xy[1] - yoffset * (ax.get_ylim()[1] - ax.get_ylim()[0]) / 10)
     # logging.info("Placing text at {}".format(textxy))
 
     ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment='center',
@@ -294,7 +295,7 @@ def plot_gp(model, confidence_intervals=None, type='both', custom_x=None, precis
             ax.fill_between(
                 X_[:, 0], lower, upper,
                 facecolor=colors['gp_variance'], alpha=alpha,
-                label="{0:.2f}-Sigma Confidence Envelope".format(k)
+                label="{0:.1f}x Sigma Confidence Envelope".format(k)
             )
 
     mu, sigma = model.predict(X_, return_std=True)

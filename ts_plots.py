@@ -101,7 +101,7 @@ def visualize_ts(initial_design, init=None):
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, highlight_datapoint=None, highlight_label=None, ax=ax)
 
@@ -121,7 +121,7 @@ def visualize_ts(initial_design, init=None):
     ax.set_xlim(bounds["x"])
     ax.set_ylim(bounds["gp_y"])
     ax.grid()
-    boplot.plot_gp(model=gp, confidence_intervals=[2.0], custom_x=x, ax=ax)
+    boplot.plot_gp(model=gp, confidence_intervals=[1.0, 2.0, 3.0], custom_x=x, ax=ax)
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, highlight_datapoint=None, highlight_label=None, ax=ax)
 
@@ -165,6 +165,7 @@ def visualize_ts(initial_design, init=None):
     nsamples = 1
     X_ = boplot.get_plot_domain(precision=None)
     mu = gp.sample_y(X=X_, n_samples=nsamples, random_state=seed3)
+    colors['highlighted_observations'] = 'red'  # Special for Thompson Sampling
     boplot.plot_gp_samples(
         mu=mu,
         nsamples=nsamples,
