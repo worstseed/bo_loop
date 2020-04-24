@@ -105,7 +105,7 @@ def visualize_ts(initial_design, init=None):
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, highlight_datapoint=None, highlight_label=None, ax=ax)
 
-    ax.legend().set_zorder(20)
+    ax.legend().set_zorder(zorders['legend'])
     ax.set_xlabel(labels['xlabel'])
 
     plt.tight_layout()
@@ -141,7 +141,7 @@ def visualize_ts(initial_design, init=None):
         seed=seed2
     )
 
-    ax.legend().set_zorder(20)
+    ax.legend().set_zorder(zorders['legend'])
     ax.set_xlabel(labels['xlabel'])
 
     plt.tight_layout()
@@ -185,7 +185,7 @@ def visualize_ts(initial_design, init=None):
     boplot.highlight_output(y=np.array([cost]), label='', lloc='left', disable_ticks=True, ax=ax)
     boplot.annotate_y_edge(label=r'$g(\lambda^{(t)})$', xy=(candidate, cost), align='left', ax=ax)
 
-    ax.legend().set_zorder(20)
+    ax.legend().set_zorder(zorders['legend'])
     ax.set_xlabel(labels['xlabel'])
 
     plt.tight_layout()

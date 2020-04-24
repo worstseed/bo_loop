@@ -104,7 +104,7 @@ def visualize_lcb(initial_design, init=None):
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=False, highlight_datapoint=None, highlight_label=None, ax=ax)
 
-    ax.legend().set_zorder(20)
+    ax.legend().set_zorder(zorders['legend'])
     ax.set_xlabel(labels['xlabel'])
 
     plt.tight_layout()
@@ -128,7 +128,7 @@ def visualize_lcb(initial_design, init=None):
     boplot.plot_objective_function(ax=ax)
     boplot.mark_observations(X_=x, Y_=y, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=ax)
 
-    ax.legend().set_zorder(20)
+    ax.legend().set_zorder(zorders['legend'])
     ax.set_xlabel(labels['xlabel'])
 
     plt.tight_layout()
@@ -191,7 +191,7 @@ def visualize_lcb(initial_design, init=None):
     # boplot.highlight_output(y=lcb_max[1], label='', lloc='left', ax=ax)
     # boplot.annotate_y_edge(label=r'${\hat{c}}^{(t)}(%.2f)$' % lcb_max[0], xy=lcb_max, align='left', ax=ax)
     #
-    # ax.legend().set_zorder(20)
+    # ax.legend().set_zorder(zorders['legend'])
     # ax.set_xlabel(labels['xlabel'])
     # ax.set_ylabel(labels['gp_ylabel'])
     # ax.set_title(r"Visualization of $\mathcal{G}^{(t)}$", loc='left')

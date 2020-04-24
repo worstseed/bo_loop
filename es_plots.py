@@ -119,14 +119,14 @@ def visualize_es(initial_design, init=None):
         rng = np.random.RandomState(seed=seed)
         counts = np.zeros_like(X_.flatten())
         bin_edges = np.zeros(shape=(counts.shape[0]+1))
-        # Smoothen out the batches
+        # Smoothen out the batches - we don't care about missing out a small overflow number of samples.
         nsamples = (nsamples // batch_size) * batch_size
         for idx in range(0, nsamples, batch_size):
             # # Iterate in increments of batch_size samples, but check for an uneven batch in the last iteration
             # batch_nsamples = batch_size if (nsamples - idx) % batch_size == 0 else nsamples - idx
             if idx % (batch_size * 10) == 0:
-                logging.info(f"Generated {idx * batch_size} samples out of an expected {nsamples}"
-                             f"[{idx * batch_size * 100.0 / nsamples}%].")
+                logging.info(f"Generated {idx} samples out of an expected {nsamples}"
+                             f"[{idx * 100.0 / nsamples}%].")
             batch_nsamples = batch_size
             mu = gp.sample_y(X=X_, n_samples=batch_nsamples, random_state=rng)
             minima = X_[np.argmin(mu, axis=0), 0]
@@ -333,7 +333,7 @@ def visualize_es(initial_design, init=None):
     # 5. Show PDF derived from the histogram at 10e9 samples
     # -------------------------------------------
 
-    nsamples = int(10e9)
+    nsamples = int(1e9)    # Generate ~1 Billion samples
     bounds["acq_y"] = (0.0, nsamples / 10.0)
     # ax1_title = r"200 samples from $\mathcal{G}^t$"
     # ax2_title = "$\hat{P}(\lambda=\lambda^*)$"
