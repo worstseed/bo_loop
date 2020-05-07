@@ -105,8 +105,16 @@ def visualize_ei(initial_design, init=None):
             y=np.array([ymin]),
             label=['$c_{inc}$'],
             lloc='left',
-            ax=ax
+            ax=ax,
+            # disable_ticks=True
         )
+        # boplot.annotate_y_edge(
+        #     label='$c_{inc}$',
+        #     xy=((ax.get_xlim()[0] + x[ymin_arg]) / 2, ymin),
+        #     ax=ax,
+        #     align='left',
+        #     yoffset=1.0
+        # )
 
         return fig, ax
 
@@ -181,12 +189,22 @@ def visualize_ei(initial_design, init=None):
     def draw_final_figure(sample_cost, vis_confs, inc_eq_loc_x, draw_improvement=True, draw_normals=True):
         fig, ax = draw_basic_figure_plus_zone()
 
+        labels = [r'$\lambda_%d$' % (idx + 1) for idx in range(len(vis_confs))]
         boplot.highlight_configuration(
             x=np.array(vis_confs),
-            label=[r'$\lambda_%d$' % (idx + 1) for idx in range(len(vis_confs))],
+            label=labels,
             lloc='bottom',
-            ax=ax
+            ax=ax,
+            disable_ticks=True
         )
+        for label, conf in zip(labels, vis_confs):
+            boplot.annotate_x_edge(
+                label=label,
+                xy=(conf + 0.6 * (ax.get_xlim()[1] - ax.get_xlim()[0]) / 10, ymin),
+                ax=ax,
+                align='bottom',
+                offset_param=1.9
+            )
         boplot.highlight_output(
             y=np.array([sample_cost, ymin]),
             label=['c', '$c_{inc}$'],

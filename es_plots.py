@@ -146,7 +146,9 @@ def visualize_es(initial_design, init=None):
                                f"{nsamples} of type {type(nsamples)}")
 
         # If data is not None, assume that it contains pre-computed histogram data
+        logging.debug("Recieved histogram data of shape %s." % str(np.array(data).shape))
         if data:
+            logging.debug("Histogram data contained %d counts and %d bins." %(np.array(data[0]).shape[0], np.array(data[1]).shape[0]))
             counts = data[0]
             bins = data[1]
             return ax2.hist(
@@ -231,7 +233,8 @@ def visualize_es(initial_design, init=None):
         else:
             ax1.legend().remove()
 
-        plt.tight_layout()
+        # plt.tight_layout()
+        plt.subplots_adjust(hspace=1.0)
         if TOGGLE_PRINT:
             plt.savefig(f"{OUTPUT_DIR}/{figname}")
         else:
@@ -347,7 +350,7 @@ def visualize_es(initial_design, init=None):
     draw_samples(nsamples=200, ax1=ax1, ax2=ax2, show_min=False, show_samples=True, show_hist=False)
 
     # Use an alternate procedure to generate the histogram data
-    counts, bins = bin_large_sample_size(nsamples, seed=GP_SAMPLE_SEED, return_pdf=False)
+    counts, bins = bin_large_sample_size(nsamples, seed=GP_SAMPLE_SEED, return_pdf=False, batch_size=1280000)
     hist_data = (counts, bins)
 
     # Draw histogram only for a large number of samples

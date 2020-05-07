@@ -113,7 +113,15 @@ def visualize_pi(initial_design, init=None):
                 y=np.array([ymin]),
                 label=['$c_{inc}$'],
                 lloc='left',
-                ax=ax
+                ax=ax,
+                disable_ticks=True
+            )
+            boplot.annotate_y_edge(
+                label='$c_{inc}$',
+                xy=(x[ymin_arg], ymin),
+                ax=ax,
+                align='left',
+                yoffset=0.8
             )
 
         return fig, ax
@@ -194,25 +202,25 @@ def visualize_pi(initial_design, init=None):
         return fig, ax
 
 
-    # 3a. Mark Zone of Probable Improvement (with legend and without objective)
+    # 3. Remove objective function.
+    # -------------Plotting code -----------------
+
+    fig, ax = draw_basic_plot(mark_incumbent=True, show_objective=False)
+
+    finishing_touches(ax, show_legend=True, figname="pi_3.pdf")
+
+    # -------------------------------------------
+
+    # 4. Mark Zone of Probable Improvement (without legend and objective)
     # -------------Plotting code -----------------
 
     fig, ax = draw_final_graph(show_objective=False, show_vertical_normals=False)
 
-    finishing_touches(ax, show_legend=True, figname="pi_3a.pdf")
+    finishing_touches(ax, show_legend=False, figname="pi_4.pdf")
 
     # -------------------------------------------
 
-    # 3b. Mark Zone of Probable Improvement (without legend and objective)
-    # -------------Plotting code -----------------
-
-    fig, ax = draw_final_graph(show_objective=False, show_vertical_normals=False)
-
-    finishing_touches(ax, show_legend=False, figname="pi_3b.pdf")
-
-    # -------------------------------------------
-
-    # 4. Draw Vertical Normal at a good candidate for improvement
+    # 5. Draw Vertical Normal at a good candidate for improvement
     # -------------Plotting code -----------------
     fig, ax = draw_final_graph(
         show_vertical_normals=True,
@@ -220,10 +228,10 @@ def visualize_pi(initial_design, init=None):
         normal_labels=r'$PI^{(t)} \approx 0.5$'
     )
 
-    finishing_touches(ax, show_legend=False, figname="pi_4.pdf")
+    finishing_touches(ax, show_legend=False, figname="pi_5.pdf")
     # -------------------------------------------
 
-    # 5. Draw Vertical Normal at a bad candidate for improvement
+    # 6. Draw Vertical Normal at a bad candidate for improvement
     # -------------Plotting code -----------------
 
     fig, ax = draw_final_graph(
@@ -232,7 +240,7 @@ def visualize_pi(initial_design, init=None):
         normal_labels=[r'$PI^{(t)} \approx 0.5$', r'$PI^{(t)} \approx 0.0$']
     )
 
-    finishing_touches(ax, show_legend=False, figname="pi_5.pdf")
+    finishing_touches(ax, show_legend=False, figname="pi_6.pdf")
     # -------------------------------------------
 
 
