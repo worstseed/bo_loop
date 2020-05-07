@@ -65,7 +65,7 @@ def annotate_y_edge(label, xy, ax, align='right', yoffset=1.0):
     :param xy: Given xy-coordinates.
     :param ax: matplotlib.Axes.axes object given by the user
     :param align: 'left' or 'right' (default) edge to use.
-    :param offset: Shifts label position towards the top (negative offset) or bottom (positive offset) from xy.
+    :param yoffset: Shifts label position towards the top (negative offset) or bottom (positive offset) from xy.
     :return: None.
     """
 
