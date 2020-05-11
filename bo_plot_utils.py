@@ -4,27 +4,30 @@ import logging
 
 from bo_configurations import *
 from matplotlib import rcParams
+from matplotlib.patches import Rectangle
 
-rcParams["font.size"] = 32
+from scipy.stats import norm
+
+rcParams["font.size"] = 36
 rcParams["axes.linewidth"] = 3
 rcParams["lines.linewidth"] = 4
 rcParams["lines.markersize"] = 26
-rcParams["legend.loc"] = "lower right"
-rcParams["legend.fontsize"] = 26
-rcParams['axes.labelsize'] = 36
+rcParams["legend.loc"] = "best"
+rcParams["legend.fontsize"] = 30
+rcParams['axes.labelsize'] = 48
 rcParams['xtick.minor.pad'] = 30.0
+rcParams['xtick.labelsize'] = 48
 #rcParams['ytick.minor.pad'] = -50.0
 
 
-
-def enable_printing():
-    rcParams["figure.figsize"] = (21, 9)
+def enable_printing(figsize=(21, 9)):
+    rcParams["figure.figsize"] = figsize
     rcParams["figure.dpi"] = 300.0
     rcParams["savefig.dpi"] = 'figure'
     rcParams["savefig.format"] = 'pdf'
 
 def enable_onscreen_display():
-    rcParams["figure.figsize"] = (6.4, 4.8)
+    rcParams["figure.figsize"] = (16, 9)
     rcParams["figure.dpi"] = 100.0
 
 
@@ -55,6 +58,30 @@ def annotate_y_edge(label, xy, ax, align='right'):
     ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment=align, zorder=10)
 
 
+def annotate_x_edge(label, xy, ax, align='bottom', offset_param=1.5):
+    """
+    Place an annotation next to a vertical bar, between a given point and either of the bottom or top edges.
+    :param label: Text to annotate with.
+    :param xy: Given xy-coordinates.
+    :param ax: matplotlib.Axes.axes object given by the user
+    :param align: 'top' or 'bottom' (default) edge to use.
+    :param offset_param: Controls offset of label from xy.
+    :return: None.
+    """
+
+    if align == 'bottom':
+        y = xy[1] - offset_param * (xy[1] - ax.get_ylim()[0]) / 2
+    else:
+        y = xy[1] + offset_param * (ax.get_ylim()[1] - xy[1]) / 2
+
+    # textxy = ax.transData.transform([x, xy[1]])
+    # textxy = ax.transData.inverted().transform((textxy[0], textxy[1] - 2 * rcParams["font.size"]))
+    textxy = (xy[0] - 0.1, y)
+    # logging.info("Placing text at {}".format(textxy))
+
+    ax.annotate(s=label, xy=textxy, color=colors['minor_tick_highlight'], horizontalalignment='right', zorder=10)
+
+
 def get_plot_domain(precision=None, custom_x=None):
     """
     Generates the default domain of configuration values to be plotted.
@@ -75,10 +102,11 @@ def get_plot_domain(precision=None, custom_x=None):
 
 
 # Plot objective function, defined f(x)
-def plot_objective_function(ax=None):
+def plot_objective_function(ax=None, translation=0):
     """
     Plots the underlying true objective function being used for BO.
     :param ax: matplotlib.Axes.axes object given by the user, or newly generated for a 1x1 figure if None (default).
+    :param translation: int for plotting a translated objective function
     :return: None if ax was given, otherwise the new matplotlib.Axes.axes object.
     """
     return_flag = False
@@ -86,12 +114,12 @@ def plot_objective_function(ax=None):
         fig, ax = plt.subplots(1, 1, squeeze=True)
         return_flag = True
     X_ = get_plot_domain()
-    ax.plot(X_, f([X_]), linestyle='--', label="Objective function")
+    ax.plot(X_, np.add(f([X_]), translation), linestyle='--', label="Objective function")
 
     return ax if return_flag else None
 
 
-def mark_current_incumbent(x, y, invert_y=False, ax=None):
+def mark_current_incumbent(x, y, invert_y=False, ax=None, translation=0):
     """
     Convenience function to mark the current incumbent on the graph.
     :param x: Current incumbent's configuration.
@@ -99,15 +127,16 @@ def mark_current_incumbent(x, y, invert_y=False, ax=None):
     :param invert_y: Use the negative of the given y value, useful when switching between minimization and maximization.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
+    :param translation: int for translating the coordinates along the y axis
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
     """
 
     if invert_y:
         y = -y
-    ax.scatter(x, y, color=colors['current_incumbent'], marker='v', label=labels['incumbent'], zorder=12)
+    ax.scatter(x, np.add(y, translation), color=colors['current_incumbent'], marker='v', label=labels['incumbent'], zorder=12)
 
 
-def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=None):
+def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, highlight_label=None, ax=None, translation=10):
     """
     Plots the given dataset as data observed thus far, including the current incumbent unless otherwise specified.
     :param X_: Configurations.
@@ -116,6 +145,7 @@ def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, hig
     :param highlight_datapoint: Optional array of indices of configurations in X_ which will be highlighted.
     :param highlight_label: Optional legend label for highlighted datapoints.
     :param ax: matplotlib.Axes.axes object given by the user, or newly generated for a 1x1 figure if None (default).
+    :param translation: int for translating the coordinates along the y axis
     :return: None if ax was given, otherwise the new matplotlib.Axes.axes object.
     """
     return_flag = False
@@ -136,14 +166,14 @@ def mark_observations(X_, Y_, mark_incumbent=True, highlight_datapoint=None, hig
         logging.debug("Placing highlights on labels at indices: {}".format(highlight_datapoint))
         ax.scatter(
             X_[highlight_datapoint, 0],
-            Y_[highlight_datapoint, 0],
+            np.add(Y_[highlight_datapoint, 0], translation),
             color=colors['highlighted_observations'],
             marker='X',
             label=highlight_label,
             zorder=11
         )
         mask[highlight_datapoint] = 0
-    ax.scatter(X_[mask, 0], Y_[mask, 0], color=colors['observations'], marker='X', label="Observations", zorder=10)
+    ax.scatter(X_[mask, 0], np.add(Y_[mask, 0], translation), color=colors['observations'], marker='X', label="Observations", zorder=10)
 
     return ax if return_flag else None
 
@@ -172,10 +202,14 @@ def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False,
 
     min_idx = np.argmin(mu, axis=0).reshape(-1, nsamples)
 
+    rng = np.random.mtrand._rand
+    if seed is not None:
+        rng = np.random.RandomState(seed)
+
     xmin = []
     mumin = []
     for i in range(nsamples):
-        ax.plot(X_, mu[:, i], color=np.random.rand(3), label="Sample {}".format(i), alpha=0.6,)
+        ax.plot(X_, mu[:, i], color=rng.rand(3), label="Sample {}".format(i+1), alpha=0.6,)
         xmin.append(X_[min_idx[0, i], 0])
         mumin.append(mu[min_idx[0, i], i])
     if show_min:
@@ -192,16 +226,19 @@ def plot_gp_samples(mu, nsamples, precision=None, custom_x=None, show_min=False,
 
 
 
-def plot_gp(model, confidence_intervals=None, custom_x=None, precision=None, ax=None):
+def plot_gp(model, confidence_intervals=None, type='both', custom_x=None, precision=None, ax=None, translation=0, annotate=False):
     """
     Plot a GP's mean and, if required, its confidence intervals.
     :param model: GP
     :param confidence_intervals: If None (default) no confidence envelope is plotted. If a list of positive values
     [k1, k2, ...]is given, the confidence intervals k1*sigma, k2*sigma, ... are plotted.
+    :param type: 'upper'|'lower'|'both' (default) - Type of confidence bound to plot.
     :param custom_x: (Optional) Numpy-array compatible list of x values that must be included in the plot.
     :param precision: Set plotting precision per unit along x-axis. Default params['sample_precision'].
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
+    :param translation: int for translating the coordinates along the y axis
+    :param annotate: False, If True annotations are added for the Posterior Mean and Uncertainty
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
     """
     return_flag = False
@@ -225,31 +262,54 @@ def plot_gp(model, confidence_intervals=None, custom_x=None, precision=None, ax=
             endpoint=False
         )
 
+        get_envelope = {
+            'upper': lambda mu, k, sigma: (mu, mu + k * sigma),
+            'lower': lambda mu, k, sigma: (mu - k * sigma, mu),
+            'both': lambda mu, k, sigma: (mu - k * sigma, mu + k * sigma),
+        }
+
         for k, alpha in zip(confidence_intervals, alphas):
+            lower, upper = get_envelope[type](mu, k, sigma)
             ax.fill_between(
-                X_[:, 0], mu - k*sigma, mu + k*sigma,
+                X_[:, 0], lower + translation, upper + translation,
                 facecolor=colors['gp_variance'], alpha=alpha,
                 label="{0:.2f}-Sigma Confidence Envelope".format(k)
             )
 
 
-    mu, sigma = model.predict(X_, return_std=True)
+    if annotate:
+        annotate_x = [6, 8.5]
+        X_predict = np.vstack((X_, [[annotate_x[0]]])).reshape(-1, 1)
+        X_predict = np.vstack((X_predict, [[annotate_x[1]]])).reshape(-1, 1)
+        mu, sigma = model.predict(X_predict, return_std=True)
+    else:
+        mu, sigma = model.predict(X_, return_std=True)
     logging.debug("Plotting GP with these values:\nSamples:\t\t{0}\nMeans:\t\t{1}\nSTDs:\t\t{2}".format(
         X_, mu, sigma
     ))
 
     # Plot the mean
-    ax.plot(X_, mu, color=colors['gp_mean'], label=labels['gp_mean'])
+    if annotate:
+        ax.plot(X_, np.add(mu[:-2], translation), color=colors['gp_mean'], label=labels['gp_mean'])
+    else:
+        ax.plot(X_, np.add(mu, translation), color=colors['gp_mean'], label=labels['gp_mean'])
 
     # If needed, plot the confidence envelope(s)
     if confidence_intervals is not None:
-        draw_confidence_envelopes(mu, sigma, confidence_intervals)
-
+        if annotate:
+            draw_confidence_envelopes(mu[:-2], sigma[:-2], confidence_intervals)
+        else:
+            draw_confidence_envelopes(mu, sigma, confidence_intervals)
+    if annotate:
+        ax.annotate("Posterior mean", xy=(annotate_x[0], mu[-2] + 10), xytext=(annotate_x[0] - 1.15, mu[-2]+ 5),
+                         arrowprops={'arrowstyle': 'fancy'}, zorder=19, fontsize='x-large')
+        ax.annotate("Posterior uncertainty", xy=(annotate_x[1], mu[-1]- sigma[-1] + 10), xytext=(annotate_x[1] - 0.7, mu[-1] - sigma[-1] + 6),
+                         arrowprops={'arrowstyle': 'fancy'}, zorder=10, fontsize='x-large')
     return ax if return_flag else None
 
 
 # Plot acquisition function
-def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, ax=None):
+def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, ax=None, annotate=False, scaling=1):
     """
     Generate a plot to visualize the given acquisition function for the model.
     :param acquisition: Acquisition function handle, from bo_configurations.acquisition_functions.
@@ -259,14 +319,29 @@ def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, a
     :param invert: When True (default), it is assumed that the acquisition function needs to be inverted for plotting.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
+    :param annotate: False, If True annotations are added for the Acquisition Function and Acquisition Function Max
+    :param scaling: int for plotting a scaled acquisition function
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
     """
     return_flag = False
     if ax is None:
         fig, ax = plt.subplots(1, 1, squeeze=True)
+
+        ax.set_xlim(bounds["x"])
+        ax.set_ylim(bounds["acq_y"])
+        ax.grid()
+        ax.set_xlabel(labels['xlabel'])
+        ax.set_ylabel(labels['acq_ylabel'])
+        ax.set_title(r"Visualization of {}".format(labels[acquisition]), loc='left')
+
         return_flag = True
 
     X_ = get_plot_domain().reshape(-1)
+
+    if annotate:
+        np.hstack((X_, [6])).reshape(-1, 1)
+
+
     acquisition_fun = acquisition_functions[acquisition](X_, model=model, eta=eta, add=add)
     if invert:
         acquisition_fun = -acquisition_fun
@@ -274,27 +349,33 @@ def plot_acquisition_function(acquisition, eta, model, add=None, invert=False, a
     zipped.sort(key = lambda t: t[0])
     X_, acquisition_fun = list(zip(*zipped))
 
-    ax.plot(X_, acquisition_fun, color=colors['acq_fun'], label=labels[acquisition])
-    ax.fill_between(X_, acquisition_fun, ybounds[0], facecolor=colors['acq_func_fill'])
+    ax.plot(X_, np.clip(acquisition_fun, a_min=-2, a_max=5)*scaling, color=colors['acq_fun'], label=labels[acquisition])
+    ax.fill_between(X_, np.clip(acquisition_fun, a_min=-2, a_max=5)*scaling, ybounds[0], facecolor=colors['acq_func_fill'])
+    acq_vals = np.clip(acquisition_fun, a_min=-2, a_max=5)*scaling
+    best = np.argmax(acq_vals)
+
+    if annotate:
+        ax.annotate("Acquisition function", xy=(6, acq_vals[-1]),
+                     xytext=(6, acq_vals[-1] + 2),
+                     arrowprops={'arrowstyle': 'fancy'}, zorder=10, fontsize='x-large')
+        ax.annotate("Acquisition max", xy=(X_[best], acq_vals[best]),
+                    xytext=(X_[best] -2.45, acq_vals[best] + 1),
+                    arrowprops={'arrowstyle': 'fancy'}, zorder=10, fontsize='x-large')
 
     return ax if return_flag else None
 
-    # now = datetime.now()
-    # dt_string = now.strftime("%d_%m_%Y__%H_%M_%S.%f")
-    # plt.savefig("../plots/bo_loop/" + dt_string + ".png")
-    # plt.clf()
 
 
-def highlight_configuration(x, ybounds=ybounds, label=None, lloc='bottom', ax=None, **kwargs):
+def highlight_configuration(x, label=None, lloc='bottom', ax=None, disable_ticks=False, **kwargs):
     """
     Draw a vertical line at the given configuration to highlight it.
     :param x: Configuration.
-    :param ybounds: A 2-tuple containing the lower and upper plotting bounds. By default uses bo_configurations.ybounds.
     :param label: If None (default), the x-value up to decimal places is placed as a minor tick, otherwise the given
     label is used.
     :param lloc: Can be either 'top' or 'bottom' (default) to indicate the position of the label on the graph.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
+    :param disable_ticks: Only draw the horizontal line, don't bother with the ticks.
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
     """
     return_flag = False
@@ -304,8 +385,16 @@ def highlight_configuration(x, ybounds=ybounds, label=None, lloc='bottom', ax=No
 
     # Assume we will recieve x as a view on a numpy array
     x = x.reshape(-1)[0]
+    logging.info("Highlighting configuration at {} with label {}".format(x, label))
 
-    ax.vlines(x, ymin=ybounds[0], ymax=ybounds[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
+    ax.vlines(
+        x, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1],
+        colors=colors['minor_tick_highlight'], linestyles='dashed',
+    )
+
+    if disable_ticks:
+        return ax if return_flag else None
+
     xlabel = "{0:.2f}".format(x) if label is None else label
 
     if lloc == 'top':
@@ -327,16 +416,16 @@ def highlight_configuration(x, ybounds=ybounds, label=None, lloc='bottom', ax=No
 
     return ax if return_flag else None
 
-def highlight_output(y, xbounds=xbounds, label=None, lloc='left', ax=None, **kwargs):
+def highlight_output(y, label=None, lloc='left', ax=None, disable_ticks=False, **kwargs):
     """
     Draw a horizontal line at the given y-value to highlight it.
     :param y: y-value to be highlighted.
-    :param xbounds: A 2-tuple containing the lower and upper plotting bounds. By default uses bo_configurations.xbounds.
     :param label: If None (default), the y-value up to decimal places is placed as a minor tick, otherwise the given
     label is used.
     :param lloc: Can be either 'left' (default) or 'right' to indicate the position of the label on the graph.
     :param ax: A matplotlib.Axes.axes object on which the graphs are plotted. If None (default), a new 1x1 subplot is
     generated and the corresponding axes object is returned.
+    :param disable_ticks: Only draw the horizontal line, don't bother with the ticks.
     :return: If ax is None, the matplotlib.Axes.axes object on which plotting took place, else None.
     """
     return_flag = False
@@ -347,7 +436,14 @@ def highlight_output(y, xbounds=xbounds, label=None, lloc='left', ax=None, **kwa
     # Assume we will recieve y as a view on a numpy array
     y = y.reshape(-1)[0]
 
-    ax.hlines(y, xmin=xbounds[0], xmax=xbounds[1], colors=colors['minor_tick_highlight'], linestyles='dashed', label='Next Sample')
+    ax.hlines(
+        y,
+        xmin=ax.get_xlim()[0], xmax=ax.get_xlim()[1],
+        colors=colors['minor_tick_highlight'], linestyles='dashed'
+    )
+
+    if disable_ticks:
+        return ax if return_flag else None
 
     if lloc == 'right':
         ax.tick_params(
@@ -368,3 +464,68 @@ def highlight_output(y, xbounds=xbounds, label=None, lloc='left', ax=None, **kwa
     ax.set_yticklabels([ylabel], label_props, minor=True)
 
     return ax if return_flag else None
+def darken_graph(y, ax):
+    """
+    Darken the graph above a certain y-value.
+    :param y: Boundary between light and dark.
+    :param ax: The matplotlib.axes.Axes object to work on.
+    :return: None
+    """
+
+    recto = (ax.get_xlim()[0], y)
+    rectwidth = ax.get_xlim()[1] - ax.get_xlim()[0]
+    rectheight = ax.get_ylim()[1] - y
+    rect = Rectangle(
+        recto, rectwidth, rectheight,
+        fill=True, alpha=0.75, facecolor='white', zorder=8, linewidth=rcParams['lines.linewidth'], edgecolor='grey'
+    )
+    ax.add_patch(rect)
+    return
+
+
+def draw_vertical_normal(gp, incumbenty, ax, xtest=0.0, step=0.01,
+                         xlim=2.0, xscale=1.0, yscale=1.0):
+
+    # Generate a normal pdf centered at xtest
+    ytest_mean, ytest_cov = gp.predict([[xtest]], return_cov=True)
+    mu = ytest_mean[0]
+    sigma = ytest_cov[0, 0]
+    logging.info("Shapes:\nytext_mean:{}\nytest_conv:{}\nmu:{}\sigma:{}".format(
+        ytest_mean.shape, ytest_cov.shape, mu.shape, sigma.shape
+    ))
+    logging.info("Generating N({},{})".format(mu, sigma))
+    # print("ytest mean:{}, cov:{}".format(ytest_mean, ytest_cov))
+
+    # Generate a Normal distribution centered around it's mean.
+    norm_x = np.arange(mu - xlim, mu + xlim + step, step)
+    norm_y = norm.pdf(norm_x, mu, sigma) * yscale
+    logging.info("Min of normal_y is: {}\nMean of normal_y is:{}".format(np.min(norm_y), np.mean(norm_y)))
+
+    # Shift the normal to x=0 and stretch it along x
+    norm_x = (norm_x - mu) * xscale
+
+    # Rotate by -pi/2 to obtain a vertical curve and then shift the center to the sample's location on the GP Mean
+    vcurve_x = norm_y + xtest
+    vcurve_y = -norm_x + mu
+
+    # Test the curve by centering it without rotation
+    # vcurve_x = norm_x + xtest
+    # vcurve_y = norm_y + mu
+
+    ax.plot(xtest, mu, color='red', marker='o', markersize=20, zorder=14)
+    ax.vlines(xtest, ymin=ax.get_ylim()[0], ymax=ax.get_ylim()[1], colors='black', linestyles='dashed', zorder=9)
+    ax.plot(vcurve_x, vcurve_y, color='black', zorder=9)
+    fill_args = np.where(vcurve_y < incumbenty)
+    ax.fill_betweenx(vcurve_y[fill_args], xtest, vcurve_x[fill_args], alpha=1.0, facecolor='darkgreen', zorder=14)
+
+    # ann_x = xtest
+    # ann_y = mu
+    #
+    # arrow_x = ann_x - 2.0
+    # arrow_y = ann_y - 1.5
+    #
+    # ax.annotate(s=r'$({0}, \mu({0}))$'.format(label), xy=(ann_x, ann_y), xytext=(arrow_x, arrow_y),
+    #             arrowprops={'arrowstyle': 'fancy'},
+    #              weight='heavy', zorder=15)
+
+    return (vcurve_x, vcurve_y, mu)

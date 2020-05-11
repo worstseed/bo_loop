@@ -2,20 +2,25 @@ import numpy as np
 from bo_loop_acq_functions import *
 
 
+
+
+
 # Dictionaries for the graphs' appearance
 colors = dict({
     'observations': 'black',
-    'highlighted_observations': 'green',
+    'highlighted_observations': 'red',
     'current_incumbent': 'red',
     'highlighted_point': 'red',
     'gp_mean': '#0F028A',
     'gp_variance': 'lightblue',
     'gp_variance_edge': 'k',
-    'acq_fun': 'black',
+    'acq_fun': 'seagreen',
     'envelope_min_opacity': 0.3,
     'envelope_max_opacity': 0.8,
     'minor_tick_highlight': 'red',
-    'acq_func_fill': 'lightblue',
+    'acq_func_fill': 'mediumaquamarine',
+    'acq_func_intro': 'seagreen',
+    'acq_func_intro_fill': 'mediumaquamarine'
 })
 
 # Various parameters for plotting required by our own code
@@ -55,5 +60,5 @@ def f(x):
     return x[0]/5 * np.sin(x[0]) + x[0]/7 * np.cos(2 * x[0])
 
 # bounds for the search
-xbounds = (2, 9)
-ybounds = (-3, 3)
+xbounds = (2, 13)
+ybounds = (-1, 15)
